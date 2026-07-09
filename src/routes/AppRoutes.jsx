@@ -42,7 +42,14 @@ import EmailTemplates from "../pages/superadmin/EmailTemplates";
 import BackupRestore from "../pages/superadmin/BackupRestore";
 import AuditLogs from "../pages/superadmin/AuditLogs";
 import SettingsPage from "../pages/superadmin/SettingsPage";
+import UserDashboard from "../pages/user/UserDashboard";
 // import ProfilePage from "../pages/superadmin/ProfilePage";
+import UserProfile from "../pages/user/Profile";
+import Applications from "../pages/user/Applications";
+import Accommodation from "../pages/user/Accomodation";
+import Events from "../pages/user/Events";
+import UserNotifications from "../pages/user/Notifications";
+import UserFeedback from "../pages/user/Feedback";
 
 const AppRoutes = () => {
   return (
@@ -92,6 +99,69 @@ const AppRoutes = () => {
       <Route path="/superadmin/settings" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><SettingsPage /></ProtectedRoute>} />
       {/* <Route path="/superadmin/profile" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><ProfilePage /></ProtectedRoute>} /> */}
 
+{/* USER */}
+<Route
+  path="/user/dashboard"
+  element={
+    <ProtectedRoute allowedRoles={[ROLES.USER]}>
+      <UserDashboard />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/user/profile"
+  element={
+    <ProtectedRoute allowedRoles={[ROLES.USER]}>
+      <UserProfile />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/user/applications"
+  element={
+    <ProtectedRoute allowedRoles={[ROLES.USER]}>
+      <Applications />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/user/accommodation"
+  element={
+    <ProtectedRoute allowedRoles={[ROLES.USER]}>
+      <Accommodation />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/user/events"
+  element={
+    <ProtectedRoute allowedRoles={[ROLES.USER]}>
+      <Events />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/user/notifications"
+  element={
+    <ProtectedRoute allowedRoles={[ROLES.USER]}>
+      <UserNotifications />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/user/feedback"
+  element={
+    <ProtectedRoute allowedRoles={[ROLES.USER]}>
+      <UserFeedback />
+    </ProtectedRoute>
+  }
+/>
       <Route path="*" element={<LandingPage />} />
     </Routes>
   );

@@ -7,6 +7,7 @@ const colorMap = {
   amber: "from-amber-500 to-amber-600",
 };
 
+
 const StatCard = ({ icon: Icon, label, value, trend, color = "saffron" }) => {
   return (
     <div className="bg-white rounded-2xl p-6 shadow-card border border-slate-100 hover:shadow-lg transition-shadow">

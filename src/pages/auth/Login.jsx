@@ -101,6 +101,7 @@ const Login = () => {
               <option value={ROLES.EMPLOYEE}>Employee</option>
               <option value={ROLES.DEPARTMENT_ADMIN}>Department Admin</option>
               <option value={ROLES.SUPER_ADMIN}>Super Admin</option>
+              <option value={ROLES.USER}>User</option>
             </select>
           </div>
         </div>

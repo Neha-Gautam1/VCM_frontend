@@ -37,7 +37,7 @@ import HomepageCMS from "../pages/superadmin/HomeCMS";
 import NewsManagement from "../pages/superadmin/NewsManagement";
 import AnnouncementManagement from "../pages/superadmin/AnnoucementsManagement";
 import GalleryManagement from "../pages/superadmin/GalleryMangement";
-import SpiritualLibrary from "../pages/superadmin/SpritualLibrary";
+import SpiritualLibraryAdmin from "../pages/superadmin/SpritualLibrary";
 import Approvals from "../pages/superadmin/Approvals";
 import Analytics from "../pages/superadmin/Analytics";
 // import NotificationsAdmin from "../pages/superadmin/NotificationsAdmin";
@@ -46,14 +46,29 @@ import EmailTemplates from "../pages/superadmin/EmailTemplates";
 import BackupRestore from "../pages/superadmin/BackupRestore";
 import AuditLogs from "../pages/superadmin/AuditLogs";
 import SettingsPage from "../pages/superadmin/SettingsPage";
+
+// ── User Pages ───────────────────────────────────────────────────
 import UserDashboard from "../pages/user/UserDashboard";
-// import ProfilePage from "../pages/superadmin/ProfilePage";
 import UserProfile from "../pages/user/Profile";
-import Applications from "../pages/user/Applications";
-import Accommodation from "../pages/user/Accomodation";
-import Events from "../pages/user/Events";
-import UserNotifications from "../pages/user/Notifications";
-import UserFeedback from "../pages/user/Feedback";
+import MyBookings from "../pages/user/MyBookings";
+import DarshanPage from "../pages/user/Darshan";
+import PujaPage from "../pages/user/Puja";
+import ChadhavaPage from "../pages/user/Chadhava";
+import DonationsPage from "../pages/user/Donations";
+import AccommodationPage from "../pages/user/Accomodation";
+import EventsPage from "../pages/user/Events";
+import VolunteerPage from "../pages/user/Volunteer";
+import SpiritualLibrary from "../pages/user/SpiritualLibrary";
+import KnowledgeCentre from "../pages/user/KnowledgeCentre";
+import TempleStore from "../pages/user/TempleStore";
+import NewsPage from "../pages/user/News";
+import NotificationsPage from "../pages/user/Notifications";
+import SupportPage from "../pages/user/Feedback";
+import SettingsUser from "../pages/user/Settings";
+
+const UR = ({ children }) => (
+  <ProtectedRoute allowedRoles={[ROLES.USER]}>{children}</ProtectedRoute>
+);
 
 const AppRoutes = () => {
   return (
@@ -96,7 +111,7 @@ const AppRoutes = () => {
       <Route path="/superadmin/news" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><NewsManagement /></ProtectedRoute>} />
       <Route path="/superadmin/announcements" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><AnnouncementManagement /></ProtectedRoute>} />
       <Route path="/superadmin/gallery" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><GalleryManagement /></ProtectedRoute>} />
-      <Route path="/superadmin/library" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><SpiritualLibrary /></ProtectedRoute>} />
+      <Route path="/superadmin/library" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><SpiritualLibraryAdmin /></ProtectedRoute>} />
       <Route path="/superadmin/approvals" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><Approvals /></ProtectedRoute>} />
       <Route path="/superadmin/analytics" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><Analytics /></ProtectedRoute>} />
       {/* <Route path="/superadmin/notifications" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><NotificationsAdmin /></ProtectedRoute>} /> */}
@@ -107,69 +122,29 @@ const AppRoutes = () => {
       <Route path="/superadmin/settings" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><SettingsPage /></ProtectedRoute>} />
       {/* <Route path="/superadmin/profile" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><ProfilePage /></ProtectedRoute>} /> */}
 
-{/* USER */}
-<Route
-  path="/user/dashboard"
-  element={
-    <ProtectedRoute allowedRoles={[ROLES.USER]}>
-      <UserDashboard />
-    </ProtectedRoute>
-  }
-/>
+      {/* ── User Routes ────────────────────────────────────────────────── */}
+      <Route path="/user/dashboard"     element={<UR><UserDashboard /></UR>} />
+      <Route path="/user/profile"       element={<UR><UserProfile /></UR>} />
+      <Route path="/user/bookings"      element={<UR><MyBookings /></UR>} />
+      <Route path="/user/darshan"       element={<UR><DarshanPage /></UR>} />
+      <Route path="/user/puja"          element={<UR><PujaPage /></UR>} />
+      <Route path="/user/chadhava"      element={<UR><ChadhavaPage /></UR>} />
+      <Route path="/user/donations"     element={<UR><DonationsPage /></UR>} />
+      <Route path="/user/accommodation" element={<UR><AccommodationPage /></UR>} />
+      <Route path="/user/events"        element={<UR><EventsPage /></UR>} />
+      <Route path="/user/volunteer"     element={<UR><VolunteerPage /></UR>} />
+      <Route path="/user/library"       element={<UR><SpiritualLibrary /></UR>} />
+      <Route path="/user/knowledge"     element={<UR><KnowledgeCentre /></UR>} />
+      <Route path="/user/store"         element={<UR><TempleStore /></UR>} />
+      <Route path="/user/news"          element={<UR><NewsPage /></UR>} />
+      <Route path="/user/notifications" element={<UR><NotificationsPage /></UR>} />
+      <Route path="/user/support"       element={<UR><SupportPage /></UR>} />
+      <Route path="/user/settings"      element={<UR><SettingsUser /></UR>} />
 
-<Route
-  path="/user/profile"
-  element={
-    <ProtectedRoute allowedRoles={[ROLES.USER]}>
-      <UserProfile />
-    </ProtectedRoute>
-  }
-/>
+      {/* Legacy user routes for backwards compatibility */}
+      <Route path="/user/applications"  element={<UR><MyBookings /></UR>} />
+      <Route path="/user/feedback"      element={<UR><SupportPage /></UR>} />
 
-<Route
-  path="/user/applications"
-  element={
-    <ProtectedRoute allowedRoles={[ROLES.USER]}>
-      <Applications />
-    </ProtectedRoute>
-  }
-/>
-
-<Route
-  path="/user/accommodation"
-  element={
-    <ProtectedRoute allowedRoles={[ROLES.USER]}>
-      <Accommodation />
-    </ProtectedRoute>
-  }
-/>
-
-<Route
-  path="/user/events"
-  element={
-    <ProtectedRoute allowedRoles={[ROLES.USER]}>
-      <Events />
-    </ProtectedRoute>
-  }
-/>
-
-<Route
-  path="/user/notifications"
-  element={
-    <ProtectedRoute allowedRoles={[ROLES.USER]}>
-      <UserNotifications />
-    </ProtectedRoute>
-  }
-/>
-
-<Route
-  path="/user/feedback"
-  element={
-    <ProtectedRoute allowedRoles={[ROLES.USER]}>
-      <UserFeedback />
-    </ProtectedRoute>
-  }
-/>
       <Route path="*" element={<LandingPage />} />
     </Routes>
   );

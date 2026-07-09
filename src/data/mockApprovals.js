@@ -1,0 +1,10 @@
+export const mockApprovals = [
+  { id: 1, requester: "Priya Singh", type: "Leave Request", department: "Finance", details: "Requesting 3 days casual leave from July 15-17 for a family function.", submittedOn: "2026-07-08", status: "Pending", avatar: "https://i.pravatar.cc/150?img=44" },
+  { id: 2, requester: "Manoj Pandey", type: "Expense Reimbursement", department: "Maintenance", details: "Reimbursement claim of ₹4,500 for emergency plumbing repair materials.", submittedOn: "2026-07-07", status: "Pending", avatar: "https://i.pravatar.cc/150?img=8" },
+  { id: 3, requester: "Kavita Joshi", type: "Event Budget Approval", department: "Events", details: "Budget approval of ₹1,20,000 for Guru Purnima celebration arrangements.", submittedOn: "2026-07-06", status: "Pending", avatar: "https://i.pravatar.cc/150?img=29" },
+  { id: 4, requester: "Neha Sharma", type: "Equipment Request", department: "IT Department", details: "Request for 2 new laptops for the Super Admin dashboard development team.", submittedOn: "2026-07-05", status: "Approved", avatar: "https://i.pravatar.cc/150?img=47" },
+  { id: 5, requester: "Suresh Chandra", type: "Overtime Approval", department: "Security", details: "Overtime approval for 6 security staff during the weekend festival crowd management.", submittedOn: "2026-07-04", status: "Rejected", avatar: "https://i.pravatar.cc/150?img=51" },
+  { id: 6, requester: "Rajesh Kumar", type: "Vendor Payment", department: "Construction", details: "Payment release of ₹8,50,000 to construction material vendor for Q2 supplies.", submittedOn: "2026-07-03", status: "Pending", avatar: "https://i.pravatar.cc/150?img=12" },
+];
+
+export const approvalTypes = ["All", "Leave Request", "Expense Reimbursement", "Event Budget Approval", "Equipment Request", "Overtime Approval", "Vendor Payment"];

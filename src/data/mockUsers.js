@@ -1,0 +1,10 @@
+export const mockUsers = [
+  { id: 1, name: "Neha Sharma", employeeId: "VCM-EMP-101", email: "neha.sharma@vcm.org.in", phone: "9876543210", department: "IT Department", role: "Employee", status: "Active", joinDate: "2024-02-10", avatar: "https://i.pravatar.cc/150?img=47" },
+  { id: 2, name: "Rajesh Kumar", employeeId: "VCM-EMP-102", email: "rajesh.kumar@vcm.org.in", phone: "9876543211", department: "Construction", role: "Department Admin", status: "Active", joinDate: "2022-06-15", avatar: "https://i.pravatar.cc/150?img=12" },
+  { id: 3, name: "Anjali Verma", employeeId: "VCM-EMP-103", email: "anjali.verma@vcm.org.in", phone: "9876543212", department: "HR", role: "Employee", status: "Inactive", joinDate: "2023-01-20", avatar: "https://i.pravatar.cc/150?img=32" },
+  { id: 4, name: "Suresh Chandra", employeeId: "VCM-EMP-104", email: "suresh.chandra@vcm.org.in", phone: "9876543213", department: "Security", role: "Department Admin", status: "Active", joinDate: "2021-11-05", avatar: "https://i.pravatar.cc/150?img=51" },
+  { id: 5, name: "Priya Singh", employeeId: "VCM-EMP-105", email: "priya.singh@vcm.org.in", phone: "9876543214", department: "Finance", role: "Employee", status: "Active", joinDate: "2024-05-01", avatar: "https://i.pravatar.cc/150?img=44" },
+  { id: 6, name: "Amit Tiwari", employeeId: "VCM-EMP-106", email: "amit.tiwari@vcm.org.in", phone: "9876543215", department: "IT Department", role: "Super Admin", status: "Active", joinDate: "2020-03-12", avatar: "https://i.pravatar.cc/150?img=15" },
+  { id: 7, name: "Kavita Joshi", employeeId: "VCM-EMP-107", email: "kavita.joshi@vcm.org.in", phone: "9876543216", department: "Events", role: "Employee", status: "Pending", joinDate: "2024-08-19", avatar: "https://i.pravatar.cc/150?img=29" },
+  { id: 8, name: "Manoj Pandey", employeeId: "VCM-EMP-108", email: "manoj.pandey@vcm.org.in", phone: "9876543217", department: "Maintenance", role: "Employee", status: "Active", joinDate: "2023-09-09", avatar: "https://i.pravatar.cc/150?img=8" },
+];

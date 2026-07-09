@@ -21,6 +21,10 @@ import DeptDocuments from "../pages/department/DeptDocuments";
 import DeptEvents from "../pages/department/DeptEvents";
 import DeptSuggestions from "../pages/department/DeptSuggestions";
 import DeptReports from "../pages/department/DeptReports";
+import DeptTeamOverview from "../pages/department/DeptTeamOverview";
+import DeptStatistics from "../pages/department/DeptStatistics";
+import DeptTraining from "../pages/department/DeptTraining";
+import DeptResources from "../pages/department/DeptResources";
 
 import SuperAdminDashboard from "../pages/superadmin/SuperAdminDashboard";
 import UserManagement from "../pages/superadmin/UserManagement";
@@ -75,6 +79,10 @@ const AppRoutes = () => {
       <Route path="/department/events" element={<ProtectedRoute allowedRoles={[ROLES.DEPARTMENT_ADMIN]}><DeptEvents /></ProtectedRoute>} />
       <Route path="/department/suggestions" element={<ProtectedRoute allowedRoles={[ROLES.DEPARTMENT_ADMIN]}><DeptSuggestions /></ProtectedRoute>} />
       <Route path="/department/reports" element={<ProtectedRoute allowedRoles={[ROLES.DEPARTMENT_ADMIN]}><DeptReports /></ProtectedRoute>} />
+      <Route path="/department/team" element={<ProtectedRoute allowedRoles={[ROLES.DEPARTMENT_ADMIN]}><DeptTeamOverview /></ProtectedRoute>} />
+      <Route path="/department/statistics" element={<ProtectedRoute allowedRoles={[ROLES.DEPARTMENT_ADMIN]}><DeptStatistics /></ProtectedRoute>} />
+      <Route path="/department/training" element={<ProtectedRoute allowedRoles={[ROLES.DEPARTMENT_ADMIN]}><DeptTraining /></ProtectedRoute>} />
+      <Route path="/department/resources" element={<ProtectedRoute allowedRoles={[ROLES.DEPARTMENT_ADMIN]}><DeptResources /></ProtectedRoute>} />
 
       {/* Super Admin */}
       <Route path="/superadmin/dashboard" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><SuperAdminDashboard /></ProtectedRoute>} />

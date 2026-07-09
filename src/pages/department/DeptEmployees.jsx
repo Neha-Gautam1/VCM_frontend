@@ -8,7 +8,7 @@ const DeptEmployees = () => {
   return (
     <DashboardLayout menuItems={departmentMenuItems} pageTitle="Employees" profilePath="/department/dashboard">
       <Card>
-        <EmptyState icon={FaUsers} message="Department Employees Module" subMessage="Placeholder screen — full employee management UI to be built by the assigned intern." />
+        <EmptyState icon={FaUsers} message="Department Employees Module" subMessage="Placeholder screen — full employee management UI to be built." />
       </Card>
     </DashboardLayout>
   );

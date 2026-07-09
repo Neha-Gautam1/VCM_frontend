@@ -12,11 +12,13 @@ const Login = () => {
   const [form, setForm] = useState({ email: "", password: "", role: ROLES.EMPLOYEE });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
+  const [authError, setAuthError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setErrors({ ...errors, [e.target.name]: "" });
+    setAuthError("");
   };
 
   const validate = () => {
@@ -34,6 +36,13 @@ const Login = () => {
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
+    }
+    // Validate Department Admin credentials
+    if (form.role === ROLES.DEPARTMENT_ADMIN) {
+      if (form.email !== "deptadmin@gmail.com" || form.password !== "department") {
+        setAuthError("Invalid credentials for Department Admin. Use deptadmin@gmail.com / department");
+        return;
+      }
     }
     setSubmitting(true);
     setTimeout(() => {
@@ -106,6 +115,12 @@ const Login = () => {
           </div>
         </div>
 
+        {authError && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+            <p className="text-red-600 text-xs">{authError}</p>
+          </div>
+        )}
+
         <div className="flex items-center justify-between text-sm">
           <label className="flex items-center gap-2 text-slate-600 cursor-pointer">
             <input type="checkbox" className="rounded border-slate-300 text-saffron-500 focus:ring-saffron-400" />
@@ -130,7 +145,7 @@ const Login = () => {
         </p>
 
         <p className="text-center text-xs text-slate-400 pt-2 border-t border-slate-100">
-          Demo prototype — any email/password combination will log you in.
+          Dept Admin: deptadmin@gmail.com / department
         </p>
       </form>
     </AuthLayout>

@@ -5,8 +5,11 @@ import {
   FaCalendarAlt,
   FaHome,
   FaFileAlt,
-  FaCommentDots,
+  FaLightbulb,
   FaHandsHelping,
+  FaBook,
+  FaMapMarkerAlt,
+  FaComments,
 } from "react-icons/fa";
 
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
@@ -47,9 +50,19 @@ export const userMenuItems = [
     icon: FaBell,
   },
   {
-    label: "Feedback",
-    path: "/user/feedback",
-    icon: FaCommentDots,
+    label: "Spiritual Library",
+    path: "/user/spiritual-library",
+    icon: FaBook,
+  },
+  {
+    label: "Campus View",
+    path: "/user/campus-view",
+    icon: FaMapMarkerAlt,
+  },
+  {
+    label: "Suggestion Box",
+    path: "/user/suggestion-box",
+    icon: FaComments,
   },
 ];
 
@@ -214,12 +227,20 @@ const UserDashboard = () => {
                 title: "Book Event",
               },
               {
-                icon: FaHome,
-                title: "Accommodation",
+                icon: FaBook,
+                title: "Spiritual Library",
               },
               {
-                icon: FaCommentDots,
-                title: "Feedback",
+                icon: FaMapMarkerAlt,
+                title: "Campus View",
+              },
+              {
+                icon: FaComments,
+                title: "Suggestion Box",
+              },
+              {
+                icon: FaHome,
+                title: "Accommodation",
               },
             ].map((item) => {
               const Icon = item.icon;

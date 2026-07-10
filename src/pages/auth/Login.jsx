@@ -5,6 +5,20 @@ import AuthLayout from "../../layouts/AuthLayout";
 import { useAuth } from "../../hooks/useAuth";
 import { ROLES, ROLE_DASHBOARD_PATH } from "../../utils/contants";
 
+// Helper function to validate User email and password format
+const validateUserCredentials = (email, password) => {
+  // User email format: user<number>@vcm.org.in (e.g., user1@vcm.org.in, user123@vcm.org.in)
+  const emailRegex = /^user\d+@vcm\.org\.in$/i;
+  
+  // User password format: user@<number> (e.g., user@123, user@456)
+  const passwordRegex = /^user@\d+$/i;
+  
+  return {
+    emailValid: emailRegex.test(email),
+    passwordValid: passwordRegex.test(password)
+  };
+};
+
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -37,13 +51,30 @@ const Login = () => {
       setErrors(validationErrors);
       return;
     }
-    // Validate Department Admin credentials
+
+    // Role-specific validation
     if (form.role === ROLES.DEPARTMENT_ADMIN) {
       if (form.email !== "deptadmin@gmail.com" || form.password !== "department") {
         setAuthError("Invalid credentials for Department Admin. Use deptadmin@gmail.com / department");
         return;
       }
     }
+    
+    // USER ROLE VALIDATION
+    if (form.role === ROLES.USER) {
+      const { emailValid, passwordValid } = validateUserCredentials(form.email, form.password);
+      
+      if (!emailValid) {
+        setAuthError("Invalid email format. Use: user<number>@vcm.org.in (e.g., user1@vcm.org.in)");
+        return;
+      }
+      
+      if (!passwordValid) {
+        setAuthError("Invalid password format. Use: user@<number> (e.g., user@123)");
+        return;
+      }
+    }
+
     setSubmitting(true);
     setTimeout(() => {
       const sessionUser = login({ email: form.email, role: form.role });
@@ -66,7 +97,7 @@ const Login = () => {
               value={form.email}
               onChange={handleChange}
               placeholder="you@vcm.org.in"
-              className={`w-full pl-10 pr-4 py-3 rounded-xl border ${errors.email ? "border-red-400" : "border-slate-200"} bg-white focus:outline-none focus:ring-2 focus:ring-saffron-400 focus:border-transparent text-sm transition`}
+              className={`w-full pl-10 pr-4 py-3 rounded-xl border ${errors.email ? "border-red-400" : "border-slate-200"} bg-white focus:outline-none focus:ring-2 focus:ring-saffron-400 focus:border-transparent text-sm`}
             />
           </div>
           {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
@@ -83,7 +114,7 @@ const Login = () => {
               value={form.password}
               onChange={handleChange}
               placeholder="••••••••"
-              className={`w-full pl-10 pr-10 py-3 rounded-xl border ${errors.password ? "border-red-400" : "border-slate-200"} bg-white focus:outline-none focus:ring-2 focus:ring-saffron-400 focus:border-transparent text-sm transition`}
+              className={`w-full pl-10 pr-10 py-3 rounded-xl border ${errors.password ? "border-red-400" : "border-slate-200"} bg-white focus:outline-none focus:ring-2 focus:ring-saffron-400 focus:border-transparent text-sm`}
             />
             <button
               type="button"
@@ -132,7 +163,7 @@ const Login = () => {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full bg-gradient-to-r from-saffron-600 to-maroon-600 text-white font-semibold py-3 rounded-xl shadow-soft hover:shadow-lg hover:opacity-95 active:scale-[0.99] transition-all disabled:opacity-70"
+          className="w-full bg-gradient-to-r from-saffron-600 to-maroon-600 text-white font-semibold py-3 rounded-xl shadow-soft hover:shadow-lg hover:opacity-95 active:scale-[0.99] transition-all disabled:opacity-50"
         >
           {submitting ? "Signing in..." : "Sign In"}
         </button>
@@ -145,7 +176,14 @@ const Login = () => {
         </p>
 
         <p className="text-center text-xs text-slate-400 pt-2 border-t border-slate-100">
-          Dept Admin: deptadmin@gmail.com / department
+          <strong>User Login Format:</strong><br/>
+          Email: user&lt;number&gt;@vcm.org.in<br/>
+          Password: user@&lt;number&gt;<br/>
+          <span className="text-slate-500">Example: user1@vcm.org.in / user@123</span><br/>
+          <span className="text-slate-500">Or: user456@vcm.org.in / user@789</span><br/>
+          <br/>
+          <strong>Dept Admin:</strong><br/>
+          deptadmin@gmail.com / department
         </p>
       </form>
     </AuthLayout>

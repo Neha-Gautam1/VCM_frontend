@@ -90,7 +90,7 @@ const DepartmentDashboard = () => {
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_80%_20%,white,transparent_50%)]"></div>
         <div className="relative z-10 flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h2 className="font-display text-2xl font-bold">Welcome back, {user?.name?.split(" ")[0] || "Admin"} 🙏</h2>
+            <h2 className="font-display text-2xl font-bold">Hare Krishna, {user?.name?.split(" ")[0] || "Admin"} 🙏</h2>
             <p className="text-white/80 text-sm mt-1">IT Department · VCM Employee Portal · {new Date().toLocaleDateString("en-IN", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p>
           </div>
           <div className="hidden sm:flex items-center gap-3">

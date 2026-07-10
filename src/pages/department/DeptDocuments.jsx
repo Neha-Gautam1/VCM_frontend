@@ -8,10 +8,10 @@ const DeptDocuments = () => {
   return (
     <DashboardLayout menuItems={departmentMenuItems} pageTitle="Documents" profilePath="/department/dashboard">
       <Card>
-        <EmptyState icon={FaFileAlt} message="Department Documents Module" subMessage="Placeholder screen — file repository UI to be built by the assigned intern." />
+        <EmptyState icon={FaFileAlt} message="Department Documents Module" subMessage="Placeholder screen — file repository UI to be built." />
       </Card>
     </DashboardLayout>
-  );
+  );git 
 };
 
 export default DeptDocuments;

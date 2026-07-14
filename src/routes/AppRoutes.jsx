@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 import { ROLES } from "../utils/contants";
 
@@ -58,11 +58,6 @@ import DonationsPage from "../pages/user/Donations";
 import AccommodationPage from "../pages/user/Accomodation";
 import EventsPage from "../pages/user/Events";
 import VolunteerPage from "../pages/user/Volunteer";
-import SpiritualLibrary from "../pages/user/SpiritualLibrary";
-import KnowledgeCentre from "../pages/user/KnowledgeCentre";
-import TempleStore from "../pages/user/TempleStore";
-import NewsPage from "../pages/user/News";
-import NotificationsPage from "../pages/user/Notifications";
 import SupportPage from "../pages/user/Feedback";
 import SettingsUser from "../pages/user/Settings";
 
@@ -120,7 +115,6 @@ const AppRoutes = () => {
       <Route path="/superadmin/backup-restore" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><BackupRestore /></ProtectedRoute>} />
       <Route path="/superadmin/audit-logs" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><AuditLogs /></ProtectedRoute>} />
       <Route path="/superadmin/settings" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><SettingsPage /></ProtectedRoute>} />
-      {/* <Route path="/superadmin/profile" element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]}><ProfilePage /></ProtectedRoute>} /> */}
 
       {/* ── User Routes ────────────────────────────────────────────────── */}
       <Route path="/user/dashboard"     element={<UR><UserDashboard /></UR>} />
@@ -133,13 +127,14 @@ const AppRoutes = () => {
       <Route path="/user/accommodation" element={<UR><AccommodationPage /></UR>} />
       <Route path="/user/events"        element={<UR><EventsPage /></UR>} />
       <Route path="/user/volunteer"     element={<UR><VolunteerPage /></UR>} />
-      <Route path="/user/library"       element={<UR><SpiritualLibrary /></UR>} />
-      <Route path="/user/knowledge"     element={<UR><KnowledgeCentre /></UR>} />
-      <Route path="/user/store"         element={<UR><TempleStore /></UR>} />
-      <Route path="/user/news"          element={<UR><NewsPage /></UR>} />
-      <Route path="/user/notifications" element={<UR><NotificationsPage /></UR>} />
       <Route path="/user/support"       element={<UR><SupportPage /></UR>} />
       <Route path="/user/settings"      element={<UR><SettingsUser /></UR>} />
+      {/* Redirect removed user routes (library, knowledge, news, notifications, store) to dashboard */}
+      <Route path="/user/library"       element={<Navigate to="/user/dashboard" replace />} />
+      <Route path="/user/knowledge"     element={<Navigate to="/user/dashboard" replace />} />
+      <Route path="/user/news"          element={<Navigate to="/user/dashboard" replace />} />
+      <Route path="/user/notifications" element={<Navigate to="/user/dashboard" replace />} />
+      <Route path="/user/store"         element={<Navigate to="/user/dashboard" replace />} />
 
       {/* Legacy user routes for backwards compatibility */}
       <Route path="/user/applications"  element={<UR><MyBookings /></UR>} />

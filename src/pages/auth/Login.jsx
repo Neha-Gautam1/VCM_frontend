@@ -23,7 +23,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const [form, setForm] = useState({ email: "", password: "", role: ROLES.EMPLOYEE });
+  const [form, setForm] = useState({ email: "", password: "", role: ROLES.USER });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [authError, setAuthError] = useState("");
@@ -138,7 +138,6 @@ const Login = () => {
               onChange={handleChange}
               className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-saffron-400 focus:border-transparent text-sm appearance-none cursor-pointer"
             >
-              <option value={ROLES.EMPLOYEE}>Employee</option>
               <option value={ROLES.DEPARTMENT_ADMIN}>Department Admin</option>
               <option value={ROLES.SUPER_ADMIN}>Super Admin</option>
               <option value={ROLES.USER}>User</option>

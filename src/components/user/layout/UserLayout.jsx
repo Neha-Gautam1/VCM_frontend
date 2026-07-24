@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
 import {
-  FaOm, FaTachometerAlt, FaUserCircle, FaCalendarAlt, FaBell,
-  FaHandsHelping, FaBook, FaBrain, FaShoppingBag, FaNewspaper,
+  FaOm, FaTachometerAlt, FaUserCircle, FaBell,
+  FaHandsHelping, FaBook, FaBrain, FaNewspaper,
   FaCog, FaHeadset, FaSignOutAlt, FaTimes, FaChevronLeft,
-  FaChevronRight, FaBars, FaSearch, FaPray, FaHome,
-  FaHeart, FaChevronDown, FaChevronUp
+  FaChevronRight, FaBars, FaSearch, FaLightbulb,
+  FaChevronDown, FaChevronUp
 } from "react-icons/fa";
-import { GiTempleGate, GiLotusFlower, GiCandleLight } from "react-icons/gi";
+import { GiCandleLight } from "react-icons/gi";
 import { notifications } from "../../../pages/user/data/mockData";
 
 // ─── Palette ─────────────────────────────────────────────────────────
@@ -24,17 +24,6 @@ const NAV_GROUPS = [
     items: [
       { label: "Dashboard",   path: "/user/dashboard",     icon: FaTachometerAlt, end: true },
       { label: "My Profile",  path: "/user/profile",       icon: FaUserCircle },
-      { label: "My Bookings", path: "/user/bookings",      icon: FaCalendarAlt },
-    ],
-  },
-  {
-    label: "Temple Services",
-    items: [
-      { label: "Darshan",       path: "/user/darshan",       icon: GiTempleGate },
-      { label: "Puja",          path: "/user/puja",          icon: FaPray },
-      { label: "Chadhava",      path: "/user/chadhava",      icon: GiLotusFlower },
-      { label: "Donations",     path: "/user/donations",     icon: FaHeart },
-      { label: "Accommodation", path: "/user/accommodation", icon: FaHome },
     ],
   },
   {
@@ -54,9 +43,9 @@ const NAV_GROUPS = [
   {
     label: "More",
     items: [
-      { label: "Temple Store",   path: "/user/store",         icon: FaShoppingBag },
       { label: "News & Updates", path: "/user/news",          icon: FaNewspaper },
       { label: "Notifications",  path: "/user/notifications", icon: FaBell },
+      { label: "Suggestions",    path: "/user/suggestions",   icon: FaLightbulb },
       { label: "Support",        path: "/user/support",       icon: FaHeadset },
       { label: "Settings",       path: "/user/settings",      icon: FaCog },
     ],
@@ -256,7 +245,7 @@ const UserTopBar = ({ onMenuClick, pageTitle }) => {
             <input
               value={searchQ}
               onChange={(e) => setSearchQ(e.target.value)}
-              placeholder="Search services..."
+              placeholder="Search portal..."
               className="bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none w-full"
             />
           </div>

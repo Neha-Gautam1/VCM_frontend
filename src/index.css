@@ -35,3 +35,22 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* User preference: dark mode is applied across the portal without requiring a backend. */
+.portal-dark body, .portal-dark main {
+  background-color: #111827 !important;
+  color: #e5e7eb;
+}
+.portal-dark main .bg-white, .portal-dark main [class*="bg-slate-50"], .portal-dark header {
+  background-color: #1f2937 !important;
+}
+.portal-dark main .text-slate-800, .portal-dark main .text-slate-700, .portal-dark main .text-slate-600,
+.portal-dark header .text-slate-800, .portal-dark header .text-slate-700, .portal-dark header .text-slate-600 {
+  color: #f3f4f6 !important;
+}
+.portal-dark main .text-slate-500, .portal-dark main .text-slate-400, .portal-dark header .text-slate-400 {
+  color: #cbd5e1 !important;
+}
+.portal-dark main .border-slate-100, .portal-dark main .border-slate-200, .portal-dark header {
+  border-color: #374151 !important;
+}

@@ -9,7 +9,16 @@ import {
   FaChevronDown, FaChevronUp
 } from "react-icons/fa";
 import { GiCandleLight } from "react-icons/gi";
-import { notifications } from "../../../pages/user/data/mockData";
+import { getUnreadNotificationCount, getUserPreferences, saveUserPreferences, USER_PREFERENCES_CHANGED } from "../../../utils/userPreferences";
+
+const HINDI = {
+  "Overview": "अवलोकन", "Dashboard": "डैशबोर्ड", "My Profile": "मेरी प्रोफ़ाइल",
+  "Participate": "भाग लें", "Events": "कार्यक्रम", "Volunteer": "स्वयंसेवा",
+  "Knowledge": "ज्ञान", "Spiritual Library": "आध्यात्मिक पुस्तकालय", "Knowledge Centre": "ज्ञान केंद्र",
+  "More": "अन्य", "News & Updates": "समाचार और अपडेट", "Notifications": "सूचनाएं",
+  "Suggestions": "सुझाव", "Support": "सहायता", "Settings": "सेटिंग्स",
+};
+const translate = (text, language) => language === "Hindi" ? (HINDI[text] || text) : text;
 
 // ─── Palette ─────────────────────────────────────────────────────────
 // Sidebar: dark navy  #1e2140 (matches reference exactly)
@@ -58,7 +67,14 @@ const UserSidebar = ({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) => 
   const navigate = useNavigate();
   const location = useLocation();
   const [openGroups, setOpenGroups] = useState(NAV_GROUPS.map(() => true));
-  const unread = notifications.filter((n) => !n.isRead).length;
+  const [preferences, setPreferences] = useState(getUserPreferences);
+  const unread = getUnreadNotificationCount(preferences);
+
+  useEffect(() => {
+    const updatePreferences = (event) => setPreferences(event.detail || getUserPreferences());
+    window.addEventListener(USER_PREFERENCES_CHANGED, updatePreferences);
+    return () => window.removeEventListener(USER_PREFERENCES_CHANGED, updatePreferences);
+  }, []);
 
   const handleLogout = () => { logout(); navigate("/login"); };
 
@@ -147,7 +163,7 @@ const UserSidebar = ({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) => 
                   onClick={() => toggleGroup(gi)}
                   className="flex items-center justify-between w-full px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-500 hover:text-slate-300 transition-colors"
                 >
-                  <span>{group.label}</span>
+                  <span>{translate(group.label, preferences.language)}</span>
                   {openGroups[gi] ? <FaChevronUp className="text-[8px]" /> : <FaChevronDown className="text-[8px]" />}
                 </button>
               )}
@@ -164,7 +180,7 @@ const UserSidebar = ({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) => 
                           to={item.path}
                           end={item.end}
                           onClick={() => setMobileOpen(false)}
-                          title={collapsed ? item.label : undefined}
+                          title={collapsed ? translate(item.label, preferences.language) : undefined}
                           style={isActive ? {
                             background: "linear-gradient(90deg, #f97316, #dc2626)",
                             color: "#fff",
@@ -178,7 +194,7 @@ const UserSidebar = ({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) => 
                             ${collapsed ? "justify-center" : ""}`}
                         >
                           <Icon className="text-base flex-shrink-0" />
-                          {!collapsed && <span className="truncate">{item.label}</span>}
+                          {!collapsed && <span className="truncate">{translate(item.label, preferences.language)}</span>}
                           {!collapsed && item.label === "Notifications" && unread > 0 && (
                             <span
                               className="ml-auto w-5 h-5 rounded-full text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0"
@@ -218,7 +234,14 @@ const UserTopBar = ({ onMenuClick, pageTitle }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchQ, setSearchQ] = useState("");
-  const unread = notifications.filter((n) => !n.isRead).length;
+  const [preferences, setPreferences] = useState(getUserPreferences);
+  const unread = getUnreadNotificationCount(preferences);
+
+  useEffect(() => {
+    const updatePreferences = (event) => setPreferences(event.detail || getUserPreferences());
+    window.addEventListener(USER_PREFERENCES_CHANGED, updatePreferences);
+    return () => window.removeEventListener(USER_PREFERENCES_CHANGED, updatePreferences);
+  }, []);
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-sm">
@@ -233,7 +256,7 @@ const UserTopBar = ({ onMenuClick, pageTitle }) => {
           </button>
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-slate-400 text-base hidden sm:block">🛕</span>
-            <h1 className="font-display font-bold text-lg text-slate-800 truncate hidden sm:block">{pageTitle}</h1>
+            <h1 className="font-display font-bold text-lg text-slate-800 truncate hidden sm:block">{translate(pageTitle, preferences.language)}</h1>
           </div>
         </div>
 
@@ -245,7 +268,7 @@ const UserTopBar = ({ onMenuClick, pageTitle }) => {
             <input
               value={searchQ}
               onChange={(e) => setSearchQ(e.target.value)}
-              placeholder="Search portal..."
+              placeholder={preferences.language === "Hindi" ? "पोर्टल खोजें..." : "Search portal..."}
               className="bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none w-full"
             />
           </div>
@@ -297,6 +320,7 @@ const UserLayout = ({ children, pageTitle }) => {
 
   const location = useLocation();
   useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+  useEffect(() => { saveUserPreferences(getUserPreferences()); }, []);
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#f5f7fb" }}>

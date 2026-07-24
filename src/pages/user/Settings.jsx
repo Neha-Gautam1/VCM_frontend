@@ -59,14 +59,14 @@ const Settings = () => {
           <SettingRow label="Event Reminders" desc="Alerts for upcoming events you've registered for">
             <Toggle checked={settings.emailEvents} onChange={() => toggle("emailEvents")} />
           </SettingRow>
-          <SettingRow label="Donation Receipts" desc="Email receipts for your donations">
-            <Toggle checked={settings.emailDonations} onChange={() => toggle("emailDonations")} />
-          </SettingRow>
           <SettingRow label="News & Announcements" desc="Temple updates and newsletters">
             <Toggle checked={settings.emailNews} onChange={() => toggle("emailNews")} />
           </SettingRow>
           <SettingRow label="SMS Booking Alerts" desc="Text messages for booking confirmations">
             <Toggle checked={settings.smsBookings} onChange={() => toggle("smsBookings")} />
+          </SettingRow>
+          <SettingRow label="Donation Receipts" desc="Email receipts for your donations">
+            <Toggle checked={settings.emailDonations} onChange={() => toggle("emailDonations")} />
           </SettingRow>
           <SettingRow label="SMS Event Reminders" desc="Text reminders for events">
             <Toggle checked={settings.smsEvents} onChange={() => toggle("smsEvents")} />

@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { fetchUsers, createUserRequest, updateUserRequest, deleteUserRequest } from "../../api/usersApi";
 import { FaPlus, FaEye, FaEdit, FaTrash, FaUserCircle } from "react-icons/fa";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import Card from "../../components/common/Card";
@@ -16,7 +17,9 @@ const PAGE_SIZE = 5;
 const emptyForm = { name: "", employeeId: "", email: "", phone: "", department: "", role: "Employee", status: "Active" };
 
 const UserManagement = () => {
-  const [users, setUsers] = useState(initialUsers);
+ const [users, setUsers] = useState([]);
+const [loading, setLoading] = useState(true);
+const [totalItems, setTotalItems] = useState(0);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -30,20 +33,24 @@ const UserManagement = () => {
   const [form, setForm] = useState(emptyForm);
   const [formErrors, setFormErrors] = useState({});
 
-  const filteredUsers = useMemo(() => {
-    return users.filter((u) => {
-      const matchesSearch =
-        u.name.toLowerCase().includes(search.toLowerCase()) ||
-        u.email.toLowerCase().includes(search.toLowerCase()) ||
-        u.employeeId.toLowerCase().includes(search.toLowerCase());
-      const matchesRole = roleFilter === "All" || u.role === roleFilter;
-      const matchesStatus = statusFilter === "All" || u.status === statusFilter;
-      return matchesSearch && matchesRole && matchesStatus;
-    });
-  }, [users, search, roleFilter, statusFilter]);
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
 
-  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE));
-  const paginatedUsers = filteredUsers.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const loadUsers = useCallback(async () => {
+  setLoading(true);
+  try {
+    const res = await fetchUsers({
+      search, role: roleFilter, status: statusFilter, page: currentPage, limit: PAGE_SIZE,
+    });
+    setUsers(res.data);
+    setTotalItems(res.pagination.totalItems);
+  } catch (err) {
+    console.error("Failed to load users:", err);
+  } finally {
+    setLoading(false);
+  }
+}, [search, roleFilter, statusFilter, currentPage]);
+
+useEffect(() => { loadUsers(); }, [loadUsers]);
 
   const resetFilters = (updater) => {
     updater();
@@ -84,33 +91,40 @@ const UserManagement = () => {
     return errs;
   };
 
-  const handleAddSubmit = (e) => {
-    e.preventDefault();
-    const errs = validateForm();
-    if (Object.keys(errs).length) return setFormErrors(errs);
-    const newUser = {
-      id: Math.max(...users.map((u) => u.id)) + 1,
-      ...form,
-      joinDate: new Date().toISOString().split("T")[0],
-      avatar: `https://i.pravatar.cc/150?u=${form.email}`,
-    };
-    setUsers([newUser, ...users]);
+  const handleAddSubmit = async (e) => {
+  e.preventDefault();
+  const errs = validateForm();
+  if (Object.keys(errs).length) return setFormErrors(errs);
+  try {
+    await createUserRequest(form);
     setAddOpen(false);
-  };
-
-  const handleEditSubmit = (e) => {
-    e.preventDefault();
-    const errs = validateForm();
-    if (Object.keys(errs).length) return setFormErrors(errs);
-    setUsers(users.map((u) => (u.id === activeUser.id ? { ...u, ...form } : u)));
+    loadUsers(); // refetch to show the new user
+  } catch (err) {
+    setFormErrors({ email: err.response?.data?.message || "Failed to create user" });
+  }
+};
+const handleEditSubmit = async (e) => {
+  e.preventDefault();
+  const errs = validateForm();
+  if (Object.keys(errs).length) return setFormErrors(errs);
+  try {
+    await updateUserRequest(activeUser.id, form);
     setEditOpen(false);
-  };
+    loadUsers();
+  } catch (err) {
+    setFormErrors({ email: err.response?.data?.message || "Failed to update user" });
+  }
+};
 
-  const handleDeleteConfirm = () => {
-    setUsers(users.filter((u) => u.id !== activeUser.id));
+const handleDeleteConfirm = async () => {
+  try {
+    await deleteUserRequest(activeUser.id);
     setDeleteOpen(false);
-  };
-
+    loadUsers();
+  } catch (err) {
+    console.error("Failed to delete user:", err);
+  }
+};
   const columns = [
     {
       key: "name",

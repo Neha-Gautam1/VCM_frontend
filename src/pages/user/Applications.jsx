@@ -20,5 +20,4 @@ const Applications = () => {
     </DashboardLayout>
   );
 };
-
 export default Applications;

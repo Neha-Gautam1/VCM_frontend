@@ -38,93 +38,138 @@ const DonationsPage = () => {
     setAmount("");
     setCustomAmount("");
     setForm({ name: "", email: "", phone: "", message: "", mode: "UPI" });
-    setTimeout(() => setToast(false), 5000);
+    setTimeout(() => setToast(false), 4500);
   };
 
   const totalDonated = myDonations.reduce((s, d) => s + d.amount, 0);
 
   return (
-    <UserLayout pageTitle="Donations">
+    <UserLayout pageTitle="Divya Seva & Donations">
       <PageHeader
-        title="Donate to VCM"
-        subtitle="Support the sacred mission of Vrindavan Chandrodaya Mandir"
-        badge="Dana & Seva"
+        title="Contribute to VCM Vrindavan"
+        subtitle="Support sacred initiatives including the 70-story Vrindavan Chandrodaya Mandir construction, Annadana, and Goshala Seva"
+        badge="Divya Seva"
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
-        <SCard className="p-5 text-center" hover={false}>
-          <p className="font-display font-bold text-2xl text-amber-900">₹{totalDonated.toLocaleString("en-IN")}</p>
-          <p className="text-xs text-amber-600/70 mt-1">Your Total Contribution</p>
-        </SCard>
-        <SCard className="p-5 text-center" hover={false}>
-          <p className="font-display font-bold text-2xl text-amber-900">{myDonations.length}</p>
-          <p className="text-xs text-amber-600/70 mt-1">Donations Made</p>
-        </SCard>
-        <SCard className="p-5 text-center col-span-2 sm:col-span-1" hover={false}>
-          <p className="font-display font-bold text-2xl text-emerald-600">80G ✓</p>
-          <p className="text-xs text-amber-600/70 mt-1">Tax Exemption Eligible</p>
-        </SCard>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
+          <div className="w-13 h-13 rounded-2xl bg-orange-100/80 text-orange-600 flex items-center justify-center text-2xl font-bold">
+            ❤️
+          </div>
+          <div>
+            <p className="font-display font-black text-2xl sm:text-3xl text-slate-800 tracking-tight">₹{totalDonated.toLocaleString("en-IN")}</p>
+            <p className="text-xs font-bold text-slate-500 mt-0.5">Your Total Contribution</p>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
+          <div className="w-13 h-13 rounded-2xl bg-purple-100/80 text-purple-600 flex items-center justify-center text-2xl font-bold">
+            🪔
+          </div>
+          <div>
+            <p className="font-display font-black text-2xl sm:text-3xl text-slate-800 tracking-tight">{myDonations.length}</p>
+            <p className="text-xs font-bold text-slate-500 mt-0.5">Seva Contributions Made</p>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
+          <div className="w-13 h-13 rounded-2xl bg-emerald-100/80 text-emerald-600 flex items-center justify-center text-2xl font-bold">
+            80G
+          </div>
+          <div>
+            <p className="font-display font-black text-2xl sm:text-3xl text-emerald-600 tracking-tight">Eligible ✓</p>
+            <p className="text-xs font-bold text-slate-500 mt-0.5">Tax Exemption Certificate</p>
+          </div>
+        </div>
       </div>
 
       {/* Tab Switcher */}
-      <div className="flex gap-2 mb-5">
+      <div className="flex gap-2 p-1.5 bg-slate-200/60 rounded-2xl w-fit mb-8">
         <button
           onClick={() => setTab("causes")}
-          className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all ${tab === "causes" ? "bg-amber-500 text-white shadow-md" : "bg-amber-50 text-amber-700 hover:bg-amber-100"}`}
+          className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${tab === "causes" ? "bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-md" : "text-slate-600 hover:text-slate-800"}`}
         >
-          Donation Causes
+          Sacred Donation Causes
         </button>
         <button
           onClick={() => setTab("history")}
-          className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all ${tab === "history" ? "bg-amber-500 text-white shadow-md" : "bg-amber-50 text-amber-700 hover:bg-amber-100"}`}
+          className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${tab === "history" ? "bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-md" : "text-slate-600 hover:text-slate-800"}`}
         >
-          My Donations
+          My Donation History
         </button>
       </div>
 
       {tab === "causes" ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-12">
           {donationCauses.map((cause) => (
-            <SCard key={cause.id} className="p-5">
-              <div className="text-3xl mb-3">{cause.icon}</div>
-              <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
-                {cause.category}
-              </span>
-              <h3 className="font-display font-semibold text-amber-900 mt-2 mb-3 leading-snug">{cause.name}</h3>
-              <ProgressBar value={cause.raised} max={cause.goal} />
-              <button
-                onClick={() => { setSelectedCause(cause); setModalOpen(true); }}
-                className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm hover:from-amber-600 hover:to-orange-600 transition-all active:scale-95 shadow-sm"
-              >
-                <FaHeart /> Donate Now
-              </button>
-            </SCard>
+            <div
+              key={cause.id}
+              className="group relative overflow-hidden bg-white p-6 rounded-3xl border border-slate-100/90 hover:border-orange-300 hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+            >
+              <div className="absolute top-0 right-0 w-28 h-28 bg-orange-50 rounded-bl-full transition-transform group-hover:scale-110 -z-0 opacity-60 pointer-events-none" />
+
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-14 h-14 rounded-2xl bg-orange-100/80 text-orange-600 flex items-center justify-center text-3xl shadow-sm group-hover:scale-110 transition-transform">
+                    {cause.icon}
+                  </div>
+                  <span className="text-[11px] font-extrabold text-orange-600 uppercase tracking-wider bg-orange-50 border border-orange-200 px-3 py-1 rounded-full shadow-2xs">
+                    {cause.category}
+                  </span>
+                </div>
+
+                <h3 className="font-display font-black text-slate-800 text-lg group-hover:text-orange-600 transition-colors mt-2 mb-2 leading-snug">
+                  {cause.name}
+                </h3>
+                <ProgressBar value={cause.raised} max={cause.goal} />
+              </div>
+
+              <div className="relative z-10 mt-6 pt-4 border-t border-slate-100">
+                <button
+                  onClick={() => { setSelectedCause(cause); setModalOpen(true); }}
+                  className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 to-red-600 text-white font-bold text-sm hover:scale-105 active:scale-95 transition-all shadow-md"
+                  style={{ boxShadow: "0 6px 20px rgba(249,115,22,0.3)" }}
+                >
+                  <FaHeart className="text-xs" /> Contribute Now
+                </button>
+              </div>
+            </div>
           ))}
         </div>
       ) : (
-        <SCard className="p-6">
-          <CardHeader title="My Donation History" subtitle="All your past contributions" />
+        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-100 shadow-sm mb-12">
+          <CardHeader title="My Donation History" subtitle="All your past contributions & 80G tax receipts" />
           {myDonations.length === 0 ? (
-            <p className="text-center text-amber-500/60 py-8">No donations yet. Be the first to contribute!</p>
+            <div className="text-center py-12 bg-slate-50/70 rounded-2xl border border-slate-100">
+              <span className="text-4xl block mb-2">🙏</span>
+              <p className="text-slate-700 font-bold text-sm">No contributions made yet</p>
+              <p className="text-slate-400 text-xs mt-1">Be the first to contribute to Vrindavan temple causes!</p>
+            </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3.5">
               {myDonations.map((d) => (
-                <div key={d.id} className="flex items-center justify-between p-4 rounded-xl bg-amber-50/60 border border-amber-100">
-                  <div>
-                    <p className="text-sm font-semibold text-amber-900">{d.cause}</p>
-                    <p className="text-xs text-amber-600/70 mt-0.5">
-                      {new Date(d.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} · {d.mode}
-                    </p>
+                <div key={d.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4.5 rounded-2xl bg-slate-50/80 border border-slate-100 hover:bg-white hover:border-orange-200 transition-all duration-200 gap-3">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-11 h-11 rounded-xl bg-orange-100/80 text-orange-600 flex items-center justify-center text-xl font-bold flex-shrink-0 shadow-2xs">
+                      ❤️
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-800">{d.cause}</p>
+                      <p className="text-xs text-slate-500 font-medium mt-0.5">
+                        {new Date(d.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} · Mode: {d.mode} · Receipt #{d.receipt}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
+                  <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 pt-2 sm:pt-0">
                     <div className="text-right">
-                      <p className="font-bold text-amber-900">₹{d.amount.toLocaleString("en-IN")}</p>
+                      <p className="font-display font-black text-slate-800 text-base">₹{d.amount.toLocaleString("en-IN")}</p>
                       <StatusBadge status={d.status} />
                     </div>
                     <button
-                      onClick={() => alert(`Downloading receipt ${d.receipt}`)}
-                      className="w-8 h-8 rounded-lg border border-amber-200 flex items-center justify-center text-amber-600 hover:bg-amber-100 transition-colors"
+                      onClick={() => alert(`Downloading 80G Tax Receipt ${d.receipt}...`)}
+                      title="Download 80G Receipt"
+                      className="w-9 h-9 rounded-xl border border-orange-200 bg-white flex items-center justify-center text-orange-600 hover:bg-orange-500 hover:text-white transition-all shadow-2xs"
                     >
                       <FaDownload className="text-xs" />
                     </button>
@@ -133,69 +178,83 @@ const DonationsPage = () => {
               ))}
             </div>
           )}
-        </SCard>
+        </div>
       )}
 
       {/* Donation Modal */}
       <Modal
         isOpen={modalOpen}
         onClose={() => { setModalOpen(false); setErrors({}); setAmount(""); setCustomAmount(""); }}
-        title={`Donate to — ${selectedCause?.name}`}
+        title={`Contribute — ${selectedCause?.name}`}
       >
         <div className="space-y-4">
-          {/* Amount presets */}
+          <div className="p-4 rounded-2xl bg-orange-50/80 border border-orange-200 flex items-center justify-between">
+            <div>
+              <p className="font-display font-bold text-slate-800 text-base">{selectedCause?.name}</p>
+              <p className="text-xs font-semibold text-slate-600 mt-0.5">
+                Category: {selectedCause?.category} · Target Goal: ₹{selectedCause?.goal?.toLocaleString("en-IN")}
+              </p>
+            </div>
+            <span className="text-2xl">{selectedCause?.icon}</span>
+          </div>
+
           <div>
-            <p className="text-sm font-medium text-amber-800 mb-2">Select Amount</p>
-            <div className="grid grid-cols-3 gap-2">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Select Contribution Amount (₹)</p>
+            <div className="grid grid-cols-3 gap-2.5">
               {AMOUNTS.map((a) => (
                 <button
                   key={a}
                   onClick={() => { setAmount(String(a)); setCustomAmount(""); }}
-                  className={`py-2 rounded-xl text-sm font-semibold border transition-all ${amount === String(a) && !customAmount ? "bg-amber-500 text-white border-amber-500" : "bg-amber-50 text-amber-700 border-amber-200 hover:border-amber-400"}`}
+                  className={`py-2.5 rounded-xl text-sm font-bold border transition-all shadow-2xs ${amount === String(a) && !customAmount ? "bg-gradient-to-r from-orange-500 to-red-600 text-white border-transparent shadow-md scale-105" : "bg-slate-50 text-slate-700 border-slate-200 hover:border-orange-300 hover:bg-white"}`}
                 >
                   ₹{a.toLocaleString("en-IN")}
                 </button>
               ))}
             </div>
-            {errors.amount && <p className="text-xs text-red-500 mt-1">{errors.amount}</p>}
+            {errors.amount && <p className="text-xs text-red-500 font-semibold mt-1">{errors.amount}</p>}
           </div>
 
           <FormInput
             label="Custom Amount (₹)"
             id="custom-amount"
             type="number"
-            placeholder="Enter any amount"
+            placeholder="Enter custom donation amount"
             value={customAmount}
             onChange={(e) => { setCustomAmount(e.target.value); setAmount(""); }}
           />
 
-          <FormInput label="Full Name" id="don-name" placeholder="Your name" required {...f("name")} />
-          <FormInput label="Email" id="don-email" type="email" placeholder="For receipt" required {...f("email")} />
-          <FormInput label="Phone" id="don-phone" type="tel" placeholder="+91 XXXXX XXXXX" {...f("phone")} />
-          <FormSelect label="Payment Mode" id="don-mode" {...f("mode")}>
-            <option>UPI</option>
-            <option>Net Banking</option>
-            <option>Debit Card</option>
-            <option>Credit Card</option>
-          </FormSelect>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <FormInput label="Full Name (For Receipt)" id="don-name" placeholder="Legal full name" required {...f("name")} />
+            <FormInput label="Email (For 80G Certificate)" id="don-email" type="email" placeholder="devotee@example.com" required {...f("email")} />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <FormInput label="Phone Number" id="don-phone" type="tel" placeholder="+91 XXXXX XXXXX" {...f("phone")} />
+            <FormSelect label="Payment Method" id="don-mode" {...f("mode")}>
+              <option>UPI / BHIM</option>
+              <option>Net Banking</option>
+              <option>Debit Card</option>
+              <option>Credit Card</option>
+            </FormSelect>
+          </div>
 
           {finalAmount > 0 && (
-            <div className="p-4 bg-amber-50 rounded-xl border border-amber-100">
-              <div className="flex justify-between text-sm">
-                <span className="text-amber-700">Donation Amount</span>
-                <span className="font-bold text-amber-900">₹{finalAmount.toLocaleString("en-IN")}</span>
+            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+              <div>
+                <span className="text-xs font-bold text-emerald-800 block">Total Contribution</span>
+                <span className="text-[11px] text-emerald-600 flex items-center gap-1 mt-0.5 font-semibold"><FaInfoCircle /> 100% Tax Exempt under Section 80G</span>
               </div>
-              <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1"><FaInfoCircle /> Eligible for 80G income tax exemption.</p>
+              <span className="font-display font-black text-xl text-emerald-700">₹{finalAmount.toLocaleString("en-IN")}</span>
             </div>
           )}
 
-          <PrimaryBtn onClick={handleDonate} className="w-full">
+          <PrimaryBtn onClick={handleDonate} className="w-full py-3.5 text-base shadow-lg mt-2">
             <FaHeart /> Donate ₹{finalAmount > 0 ? finalAmount.toLocaleString("en-IN") : "—"}
           </PrimaryBtn>
         </div>
       </Modal>
 
-      {toast && <SuccessToast message="Thank you for your generous donation! Receipt sent to your email." onClose={() => setToast(false)} />}
+      {toast && <SuccessToast message="Thank you for your divine contribution! Your 80G tax receipt has been sent to your email." onClose={() => setToast(false)} />}
     </UserLayout>
   );
 };

@@ -4,7 +4,7 @@ import {
   SCard, PageHeader, PrimaryBtn, SuccessToast, Modal, FormInput, FormSelect
 } from "../../components/user/ui/UserUI";
 import { darshanSlots } from "./data/mockData";
-import { FaClock, FaUsers, FaCheckCircle, FaCalendarAlt, FaInfoCircle } from "react-icons/fa";
+import { FaClock, FaUsers, FaCheckCircle, FaInfoCircle, FaArrowRight } from "react-icons/fa";
 
 const DarshanPage = () => {
   const [selectedSlot, setSelectedSlot] = useState(null);
@@ -14,12 +14,10 @@ const DarshanPage = () => {
   const [toast, setToast] = useState(false);
   const [errors, setErrors] = useState({});
 
-  const today = new Date().toISOString().split("T")[0];
-
   const handleBook = () => {
     const e = {};
-    if (!selectedDate) e.date = "Please select a date";
-    if (!persons || parseInt(persons) < 1) e.persons = "At least 1 person required";
+    if (!selectedDate) e.date = "Please select a visit date";
+    if (!persons || parseInt(persons) < 1) e.persons = "At least 1 devotee required";
     if (Object.keys(e).length) { setErrors(e); return; }
     setErrors({});
     setModalOpen(false);
@@ -27,84 +25,98 @@ const DarshanPage = () => {
     setSelectedSlot(null);
     setSelectedDate("");
     setPersons("1");
-    setTimeout(() => setToast(false), 4000);
+    setTimeout(() => setToast(false), 4500);
   };
 
   return (
     <UserLayout pageTitle="Darshan Booking">
       <PageHeader
-        title="Book Darshan"
-        subtitle="Reserve your slot for a divine darshan at Vrindavan Chandrodaya Mandir"
-        badge="Temple Darshan"
+        title="Book Sacred Darshan"
+        subtitle="Reserve your priority or free entry slot for the divine Aarti at Vrindavan Chandrodaya Mandir"
+        badge="Divine Sanctum"
       />
 
       {/* Info Banner */}
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6 flex gap-3 items-start">
-        <FaInfoCircle className="text-amber-500 mt-0.5 flex-shrink-0" />
-        <div className="text-sm text-amber-800">
-          <p className="font-semibold mb-1">Darshan Guidelines</p>
-          <ul className="list-disc list-inside space-y-0.5 text-amber-700/80 text-xs">
-            <li>Please arrive 15 minutes before your scheduled slot.</li>
-            <li>Dress code: Traditional Indian attire preferred. No shorts or sleeveless.</li>
-            <li>Mobile phones and cameras are not permitted inside the sanctum.</li>
-            <li>Free darshan is available for all. Paid slots offer closer views with priority entry.</li>
+      <div className="bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-transparent border border-orange-200/80 rounded-3xl p-5 mb-8 flex gap-4 items-start shadow-xs">
+        <div className="w-10 h-10 rounded-2xl bg-orange-500 text-white flex items-center justify-center text-lg flex-shrink-0 shadow-sm">
+          <FaInfoCircle />
+        </div>
+        <div className="text-sm text-slate-700 leading-relaxed">
+          <p className="font-display font-extrabold text-slate-800 text-base mb-1">Darshan & Sanctum Guidelines</p>
+          <ul className="list-disc list-inside space-y-1 text-slate-600 text-xs font-medium">
+            <li>Please arrive 15 minutes before your scheduled Aarti slot for security verification.</li>
+            <li>Traditional Indian attire is highly recommended inside the temple complex.</li>
+            <li>Mobile phones, footwear, and cameras must be deposited at the cloakroom before sanctum entry.</li>
+            <li>Priority passes offer expedited closer access and divine Charan Tulsi prasad.</li>
           </ul>
         </div>
       </div>
 
       {/* Slot Grid */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
         {darshanSlots.map((slot) => {
           const pct = Math.round(((slot.total - slot.available) / slot.total) * 100);
           const isSelected = selectedSlot?.id === slot.id;
+          const isSpecial = slot.type !== "Free";
+
           return (
-            <button
+            <div
               key={slot.id}
               onClick={() => { setSelectedSlot(slot); setModalOpen(true); }}
-              className={`text-left p-5 rounded-2xl border-2 transition-all duration-200 w-full
+              className={`group relative overflow-hidden rounded-3xl p-6 border-2 transition-all duration-300 cursor-pointer flex flex-col justify-between bg-white
                 ${isSelected
-                  ? "border-amber-500 bg-amber-50 shadow-md shadow-amber-100"
-                  : "border-amber-100 bg-white hover:border-amber-300 hover:shadow-sm hover:shadow-amber-50"
+                  ? "border-orange-500 shadow-xl shadow-orange-500/10 scale-[1.02]"
+                  : "border-slate-100/90 hover:border-orange-300 hover:shadow-xl"
                 }`}
             >
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h3 className="font-display font-bold text-amber-900">{slot.name}</h3>
-                  <p className="text-xs text-amber-600/70 flex items-center gap-1 mt-1">
-                    <FaClock /> {slot.time}
-                  </p>
+              {/* Decorative background glow */}
+              <div className={`absolute -right-8 -top-8 w-28 h-28 rounded-full blur-2xl transition-opacity duration-300 ${isSpecial ? "bg-orange-400/15 group-hover:opacity-100" : "bg-slate-200/40"}`} />
+
+              <div className="relative z-10">
+                <div className="flex items-start justify-between gap-2 mb-4">
+                  <div>
+                    <h3 className="font-display font-black text-slate-800 text-lg group-hover:text-orange-600 transition-colors">
+                      {slot.name}
+                    </h3>
+                    <p className="text-xs font-bold text-slate-500 flex items-center gap-1.5 mt-1.5">
+                      <FaClock className="text-orange-500" /> {slot.time}
+                    </p>
+                  </div>
+                  <span className={`text-xs font-extrabold px-3 py-1 rounded-full border shadow-2xs flex-shrink-0
+                    ${slot.type === "Free"
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : "bg-orange-50 text-orange-600 border-orange-200"}`}
+                  >
+                    {slot.type === "Free" ? "🛕 Free Entry" : `⭐ ₹${slot.price}`}
+                  </span>
                 </div>
-                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border
-                  ${slot.type === "Free"
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                    : slot.type === "Special"
-                    ? "bg-purple-50 text-purple-700 border-purple-200"
-                    : "bg-amber-50 text-amber-700 border-amber-200"}`}
-                >
-                  {slot.type === "Free" ? "Free" : `₹${slot.price}`}
-                </span>
+
+                {/* Availability bar */}
+                <div className="mt-5 pt-3 border-t border-slate-100">
+                  <div className="flex justify-between text-xs font-bold text-slate-600 mb-1.5">
+                    <span className="flex items-center gap-1.5 text-slate-600">
+                      <FaUsers className="text-orange-500" /> {slot.available} spots left
+                    </span>
+                    <span className="text-orange-600">{pct}% filled</span>
+                  </div>
+                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden p-0.5">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${pct > 85 ? "bg-red-500" : pct > 60 ? "bg-orange-500" : "bg-emerald-500"}`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
               </div>
 
-              {/* Availability bar */}
-              <div className="mt-3">
-                <div className="flex justify-between text-[11px] text-amber-600/70 mb-1">
-                  <span className="flex items-center gap-1"><FaUsers /> {slot.available} available</span>
-                  <span>{pct}% filled</span>
-                </div>
-                <div className="h-1.5 bg-amber-100 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all ${pct > 80 ? "bg-red-400" : pct > 60 ? "bg-amber-400" : "bg-emerald-400"}`}
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <span className="text-xs font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg inline-block hover:bg-amber-100 transition-colors">
-                  Book This Slot →
+              <div className="relative z-10 mt-6 pt-3 flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500 group-hover:text-slate-800 transition-colors">
+                  Instant Reservation
+                </span>
+                <span className="w-8 h-8 rounded-xl bg-orange-50 group-hover:bg-orange-500 group-hover:text-white text-orange-600 flex items-center justify-center transition-all shadow-2xs">
+                  <FaArrowRight className="text-xs" />
                 </span>
               </div>
-            </button>
+            </div>
           );
         })}
       </div>
@@ -113,18 +125,21 @@ const DarshanPage = () => {
       <Modal
         isOpen={modalOpen && !!selectedSlot}
         onClose={() => { setModalOpen(false); setErrors({}); }}
-        title={`Book — ${selectedSlot?.name}`}
+        title={`Reserve — ${selectedSlot?.name}`}
       >
         <div className="space-y-4">
-          <div className="p-4 bg-amber-50 rounded-xl border border-amber-100">
-            <p className="text-sm font-semibold text-amber-900">{selectedSlot?.name}</p>
-            <p className="text-xs text-amber-600/70 mt-1">
-              {selectedSlot?.time} · {selectedSlot?.type === "Free" ? "Free Entry" : `₹${selectedSlot?.price} per person`}
-            </p>
+          <div className="p-4 rounded-2xl bg-orange-50/70 border border-orange-200 flex items-center justify-between">
+            <div>
+              <p className="font-display font-bold text-slate-800 text-base">{selectedSlot?.name}</p>
+              <p className="text-xs font-semibold text-slate-500 mt-0.5">
+                {selectedSlot?.time} · {selectedSlot?.type === "Free" ? "Free Devotee Pass" : `Priority Pass (₹${selectedSlot?.price} per person)`}
+              </p>
+            </div>
+            <span className="text-2xl">🛕</span>
           </div>
 
           <FormInput
-            label="Visit Date"
+            label="Preferred Visit Date"
             id="darshan-date"
             type="date"
             value={selectedDate}
@@ -134,7 +149,7 @@ const DarshanPage = () => {
           />
 
           <FormSelect
-            label="Number of Persons"
+            label="Number of Devotees"
             id="darshan-persons"
             value={persons}
             onChange={(e) => setPersons(e.target.value)}
@@ -142,28 +157,28 @@ const DarshanPage = () => {
             error={errors.persons}
           >
             {[1, 2, 3, 4, 5, 6].map((n) => (
-              <option key={n} value={n}>{n} Person{n > 1 ? "s" : ""}</option>
+              <option key={n} value={n}>{n} Devotee{n > 1 ? "s" : ""}</option>
             ))}
           </FormSelect>
 
-          {selectedSlot?.price && (
-            <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-100">
-              <div className="flex justify-between text-sm">
-                <span className="text-amber-700">Total Amount</span>
-                <span className="font-bold text-amber-900">₹{(selectedSlot.price * parseInt(persons || 1)).toLocaleString("en-IN")}</span>
-              </div>
+          {selectedSlot?.price > 0 && (
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+              <span className="text-sm font-bold text-slate-600">Total Contribution</span>
+              <span className="font-display font-black text-lg text-orange-600">
+                ₹{(selectedSlot.price * parseInt(persons || 1)).toLocaleString("en-IN")}
+              </span>
             </div>
           )}
 
-          <div className="flex gap-3 pt-2">
-            <PrimaryBtn onClick={handleBook} className="flex-1">
-              <FaCheckCircle /> Confirm Booking
+          <div className="pt-3">
+            <PrimaryBtn onClick={handleBook} className="w-full py-3.5 text-base shadow-lg">
+              <FaCheckCircle /> Confirm Darshan Pass
             </PrimaryBtn>
           </div>
         </div>
       </Modal>
 
-      {toast && <SuccessToast message="Darshan slot booked successfully! Check My Bookings for details." onClose={() => setToast(false)} />}
+      {toast && <SuccessToast message="Darshan slot reserved successfully! Your pass has been issued." onClose={() => setToast(false)} />}
     </UserLayout>
   );
 };

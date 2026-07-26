@@ -1,35 +1,71 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { FaCheck, FaTimes, FaSave } from "react-icons/fa";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import Card from "../../components/common/Card";
 import Breadcrumbs from "../../components/common/Breadcrumbs";
 import { superAdminMenuItems } from "./SuperAdminDashboard";
-import { mockRoles, permissionModules, mockPermissionMatrix } from "../../data/mockRoles";
+import { fetchPermissionMatrix, togglePermissionRequest } from "../../api/permissionsApi";
+import { fetchRoles } from "../../api/rolesApi";
+
+// Static list — matches the modules seeded in Part 5's seedPermissions.js
+const permissionModules = [
+  "User Management", "Department Management", "Role Management", "News & Announcements",
+  "Gallery", "Spiritual Library", "Approvals", "Analytics", "System Configuration", "Audit Logs",
+];
 
 const actions = ["view", "create", "edit", "delete"];
 
 const PermissionManagement = () => {
-  const [selectedRole, setSelectedRole] = useState(mockRoles[0].name);
-  const [matrix, setMatrix] = useState(mockPermissionMatrix);
+  const [roles, setRoles] = useState([]);
+  const [selectedRole, setSelectedRole] = useState("");
+  const [matrix, setMatrix] = useState({});
+  const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
 
-  const togglePermission = (module, action) => {
+  useEffect(() => {
+    Promise.all([fetchRoles(), fetchPermissionMatrix()])
+      .then(([rolesRes, matrixRes]) => {
+        setRoles(rolesRes.data);
+        setMatrix(matrixRes.data);
+        setSelectedRole(rolesRes.data[0]?.name || "");
+      })
+      .catch((err) => console.error("Failed to load permissions:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const togglePermission = async (moduleName, action) => {
     if (selectedRole === "Super Admin") return; // Super Admin always has full access
+
+    const currentValue = matrix[selectedRole]?.[moduleName]?.[action] || false;
+    const newValue = !currentValue;
+
+    // Optimistic UI update
     setMatrix((prev) => ({
       ...prev,
       [selectedRole]: {
         ...prev[selectedRole],
-        [module]: { ...prev[selectedRole][module], [action]: !prev[selectedRole][module][action] },
+        [moduleName]: { ...prev[selectedRole][moduleName], [action]: newValue },
       },
     }));
-    setSaved(false);
+
+    try {
+      await togglePermissionRequest(selectedRole, moduleName, action, newValue);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 1500);
+    } catch (err) {
+      console.error("Failed to update permission:", err);
+      // Roll back on failure
+      setMatrix((prev) => ({
+        ...prev,
+        [selectedRole]: {
+          ...prev[selectedRole],
+          [moduleName]: { ...prev[selectedRole][moduleName], [action]: currentValue },
+        },
+      }));
+    }
   };
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
-
+  if (loading || !matrix[selectedRole]) {
   return (
     <DashboardLayout menuItems={superAdminMenuItems} pageTitle="Permission Management" profilePath="/superadmin/profile" settingsPath="/superadmin/settings">
       <Breadcrumbs items={["Super Admin", "Permission Management"]} />
@@ -38,17 +74,14 @@ const PermissionManagement = () => {
           <h2 className="font-display text-2xl font-bold text-slate-800">Permission Management</h2>
           <p className="text-slate-500 text-sm mt-1">Assign granular module-level permissions per role.</p>
         </div>
-        <button
-          onClick={handleSave}
-          className="flex items-center justify-center gap-2 bg-gradient-to-r from-saffron-600 to-maroon-600 text-white font-semibold px-5 py-2.5 rounded-xl text-sm hover:opacity-90 transition-opacity shadow-soft"
-        >
-          <FaSave className="text-xs" /> {saved ? "Saved!" : "Save Changes"}
-        </button>
+       <span className="flex items-center gap-2 text-emerald-600 text-sm font-semibold">
+  <FaSave className="text-xs" /> {saved ? "All changes saved automatically" : "Changes save instantly"}
+</span>
       </div>
 
       {/* Role tabs */}
       <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide">
-        {mockRoles.map((role) => (
+        {roles.map((role) => (
           <button
             key={role.id}
             onClick={() => setSelectedRole(role.name)}
@@ -105,6 +138,7 @@ const PermissionManagement = () => {
       </Card>
     </DashboardLayout>
   );
+  }
 };
 
 export default PermissionManagement;

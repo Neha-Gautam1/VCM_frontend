@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { fetchEmailTemplates, updateEmailTemplateRequest } from "../../api/emailTemplatesApi";
 import { FaSave, FaEye, FaEnvelopeOpenText, FaKey, FaBullhorn, FaCheckCircle } from "react-icons/fa";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import Card from "../../components/common/Card";
@@ -50,25 +51,53 @@ const renderPreview = (text) => {
   return output;
 };
 
+const templateMeta = {
+  welcome: { icon: FaEnvelopeOpenText, label: "Welcome Email" },
+  passwordReset: { icon: FaKey, label: "Password Reset" },
+  announcement: { icon: FaBullhorn, label: "Announcement Email" },
+  approval: { icon: FaCheckCircle, label: "Approval Email" },
+};
+
 const EmailTemplates = () => {
-  const [templates, setTemplates] = useState(initialTemplates);
+  const [templates, setTemplates] = useState({});
   const [activeKey, setActiveKey] = useState("welcome");
   const [saved, setSaved] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const active = templates[activeKey];
+  useEffect(() => {
+    fetchEmailTemplates()
+      .then((res) => setTemplates(res.data))
+      .catch((err) => console.error("Failed to load email templates:", err))
+      .finally(() => setLoading(false));
+  }, []);
 
-  const updateField = (field, value) => {
-    setTemplates({ ...templates, [activeKey]: { ...templates[activeKey], [field]: value } });
-    setSaved(false);
-  };
+  const active = templates[activeKey] || { subject: "", body: "" };
+  const activeMeta = templateMeta[activeKey];
+
+ const updateField = (field, value) => {
+  setTemplates((prev) => ({ ...prev, [activeKey]: { ...prev[activeKey], [field]: value } }));
+  setSaved(false);
+};
+
+const handleSaveTemplate = async () => {
+  try {
+    await updateEmailTemplateRequest(activeKey, { subject: active.subject, body: active.body });
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  } catch (err) {
+    console.error("Failed to save email template:", err);
+  }
+};
 
   const handleSave = () => {
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
 
+  if (loading) {
   return (
+    
     <DashboardLayout menuItems={superAdminMenuItems} pageTitle="Email Templates" profilePath="/superadmin/profile" settingsPath="/superadmin/settings">
       <Breadcrumbs items={["Super Admin", "Email Templates"]} />
       <div className="mt-3 mb-6">
@@ -118,9 +147,9 @@ const EmailTemplates = () => {
               <button onClick={() => setPreviewOpen(true)} className="flex items-center gap-2 bg-white border border-slate-200 text-slate-600 font-semibold px-5 py-2.5 rounded-xl text-sm hover:bg-slate-50 transition-colors">
                 <FaEye className="text-xs" /> Preview
               </button>
-              <button onClick={handleSave} className="flex items-center gap-2 bg-gradient-to-r from-saffron-600 to-maroon-600 text-white font-semibold px-5 py-2.5 rounded-xl text-sm hover:opacity-90 transition-opacity shadow-soft">
-                <FaSave className="text-xs" /> {saved ? "Saved!" : "Save Template"}
-              </button>
+              <button onClick={handleSaveTemplate} className="flex items-center gap-2 bg-gradient-to-r from-saffron-600 to-maroon-600 text-white font-semibold px-5 py-2.5 rounded-xl text-sm hover:opacity-90 transition-opacity shadow-soft">
+  <FaSave className="text-xs" /> {saved ? "Saved!" : "Save Template"}
+</button>
             </div>
           </div>
         </Card>
@@ -141,6 +170,7 @@ const EmailTemplates = () => {
       </Modal>
     </DashboardLayout>
   );
+}
 };
 
 export default EmailTemplates;

@@ -4,6 +4,7 @@ import {
   FaChartBar, FaBell, FaCogs, FaEnvelopeOpenText, FaDatabase, FaClipboardList,
   FaCog, FaUserCircle, FaArrowRight, FaServer, FaClock, FaHdd, FaSignal,
 } from "react-icons/fa";
+import { useState, useEffect } from "react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import Card from "../../components/common/Card";
@@ -11,9 +12,13 @@ import StatCard from "../../components/common/StatCard";
 import Badge from "../../components/common/Badge";
 import { useAuth } from "../../hooks/useAuth";
 import { mockDepartments } from "../../data/mockDeparments";
-import {
-  employeeGrowthData, departmentActivityData, recentActivities, recentLogins, systemHealth,
-} from "../../data/mockAnalytics";
+import { fetchDepartments } from "../../api/departmentsApi";
+import { fetchEmployeeGrowth, fetchDepartmentActivity } from "../../api/analyticsApi";
+import { fetchAuditLogs } from "../../api/auditLogsApi";
+import { mediaUrl } from "../../utils/mediaUrl";
+import { fetchAnalyticsSummary, fetchEmployeeGrowth, fetchDepartmentActivity } from "../../api/analyticsApi";
+import { fetchApprovals } from "../../api/approvalsApi";
+import { fetchNews } from "../../api/newsApi";
 
 export const superAdminMenuItems = [
   { label: "Dashboard", path: "/superadmin/dashboard", icon: FaTachometerAlt, end: true },
@@ -48,7 +53,36 @@ const quickActions = [
 
 const SuperAdminDashboard = () => {
   const { user } = useAuth();
+  const [departments, setDepartments] = useState([]);
+  const [employeeGrowthData, setEmployeeGrowthData] = useState([]);
+  const [departmentActivityData, setDepartmentActivityData] = useState([]);
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ totalEmployees: 0, departments: 0, pendingRequests: 0, newsPublished: 0 });
+  const [recentLogins, setRecentLogins] = useState([]);
 
+  useEffect(() => {
+    fetchAuditLogs({ search: "logged in", page: 1, limit: 4 })
+      .then((res) => setRecentLogins(res.data))
+      .catch((err) => console.error("Failed to load recent logins:", err));
+  }, []);
+
+  useEffect(() => {
+    Promise.all([
+      fetchDepartments(""),
+      fetchEmployeeGrowth(),
+      fetchDepartmentActivity(),
+      fetchAuditLogs({ page: 1, limit: 6 }),
+    ])
+      .then(([deptRes, growthRes, activityRes, logsRes]) => {
+        setDepartments(deptRes.data);
+        setEmployeeGrowthData(growthRes.data);
+        setDepartmentActivityData(activityRes.data);
+        setRecentActivities(logsRes.data);
+      })
+      .catch((err) => console.error("Failed to load dashboard data:", err))
+      .finally(() => setLoading(false));
+  }, []);
   return (
     <DashboardLayout menuItems={superAdminMenuItems} pageTitle="Dashboard" profilePath="/superadmin/profile" settingsPath="/superadmin/settings">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -62,13 +96,11 @@ const SuperAdminDashboard = () => {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5 mb-6">
-        <StatCard icon={FaUsers} label="Total Employees" value="702" trend="+4.2%" color="saffron" />
-        <StatCard icon={FaBuilding} label="Departments" value="7" color="maroon" />
-        <StatCard icon={FaCheckCircle} label="Pending Requests" value="18" trend="-2.1%" color="amber" />
-        <StatCard icon={FaSignal} label="Active Users" value="213" trend="+8.5%" color="emerald" />
-        <StatCard icon={FaNewspaper} label="News Published" value="34" color="blue" />
-        <StatCard icon={FaBell} label="Events" value="12" color="purple" />
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-6">
+        <StatCard icon={FaUsers} label="Total Employees" value={stats.totalEmployees} color="saffron" />
+        <StatCard icon={FaBuilding} label="Departments" value={stats.departments} color="maroon" />
+        <StatCard icon={FaCheckCircle} label="Pending Requests" value={stats.pendingRequests} color="amber" />
+        <StatCard icon={FaNewspaper} label="News Published" value={stats.newsPublished} color="blue" />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6 mb-6">
@@ -88,43 +120,36 @@ const SuperAdminDashboard = () => {
         {/* Quick Actions */}
         <Card title="Quick Actions">
           <div className="grid grid-cols-2 gap-3">
-           {quickActions.map(({ label, icon: Icon, path }) => (
-  <a
-    key={label}
-    href={path}
-    className="flex flex-col items-center justify-center text-center gap-2.5 p-4 rounded-xl bg-slate-50 hover:bg-gradient-to-br hover:from-saffron-500 hover:to-maroon-600 hover:text-white group transition-all duration-300"
-  >
-    <Icon className="text-xl text-saffron-600 group-hover:text-white transition-colors" />
-    <span className="text-xs font-semibold text-slate-700 group-hover:text-white transition-colors">
-      {label}
-    </span>
-  </a>
-))}
+            {quickActions.map(({ label, icon: Icon, path }) => (
+              <a
+                key={label}
+                href={path}
+                className="flex flex-col items-center justify-center text-center gap-2.5 p-4 rounded-xl bg-slate-50 hover:bg-gradient-to-br hover:from-saffron-500 hover:to-maroon-600 hover:text-white group transition-all duration-300"
+              >
+                <Icon className="text-xl text-saffron-600 group-hover:text-white transition-colors" />
+                <span className="text-xs font-semibold text-slate-700 group-hover:text-white transition-colors">
+                  {label}
+                </span>
+              </a>
+            ))}
           </div>
         </Card>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6 mb-6">
         {/* Recent Activities Table */}
-        <Card title="Recent Activities" className="lg:col-span-2" noPadding>
+        <Card title="Recent Logins" noPadding>
           <div className="divide-y divide-slate-50">
-            {recentActivities.map((a) => (
-              <div key={a.id} className="flex items-center justify-between gap-4 px-6 py-3.5">
-                <div className="flex items-center gap-3 min-w-0">
-                  <img src={`https://i.pravatar.cc/100?u=${a.user}`} className="w-8 h-8 rounded-full object-cover flex-shrink-0" alt={a.user} />
-                  <div className="min-w-0">
-                    <p className="text-sm text-slate-700 truncate">
-                      <span className="font-semibold">{a.user}</span> {a.action}
-                    </p>
-                    <p className="text-xs text-slate-400">{a.module}</p>
-                  </div>
+            {recentLogins.map((l) => (
+              <div key={l.id} className="flex items-center justify-between px-6 py-3.5 gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-slate-700 truncate">{l.user}</p>
+                  <p className="text-xs text-slate-400 truncate">{l.role} · {new Date(l.date).toLocaleString()}</p>
                 </div>
-                <span className="text-xs text-slate-400 flex-shrink-0">{a.time}</span>
               </div>
             ))}
           </div>
         </Card>
-
         {/* System Health */}
         <Card title="System Health">
           <div className="space-y-5">
@@ -162,7 +187,7 @@ const SuperAdminDashboard = () => {
         {/* Department Summary */}
         <Card title="Department Summary" className="lg:col-span-2" noPadding>
           <div className="divide-y divide-slate-50">
-            {mockDepartments.map((d) => (
+            {departments.map((d) => (
               <div key={d.id} className="flex items-center justify-between px-6 py-3.5">
                 <div>
                   <p className="text-sm font-semibold text-slate-700">{d.name}</p>
@@ -177,13 +202,18 @@ const SuperAdminDashboard = () => {
         {/* Recent Logins */}
         <Card title="Recent Logins" noPadding>
           <div className="divide-y divide-slate-50">
-            {recentLogins.map((l) => (
-              <div key={l.id} className="flex items-center justify-between px-6 py-3.5 gap-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-slate-700 truncate">{l.name}</p>
-                  <p className="text-xs text-slate-400 truncate">{l.device} · {l.time}</p>
+            {recentActivities.map((a) => (
+              <div key={a.id} className="flex items-center justify-between gap-4 px-6 py-3.5">
+                <div className="flex items-center gap-3 min-w-0">
+                  <img src={`https://i.pravatar.cc/100?u=${a.user}`} className="w-8 h-8 rounded-full object-cover flex-shrink-0" alt={a.user} />
+                  <div className="min-w-0">
+                    <p className="text-sm text-slate-700 truncate">
+                      <span className="font-semibold">{a.user}</span> {a.activity}
+                    </p>
+                    <p className="text-xs text-slate-400">{a.module}</p>
+                  </div>
                 </div>
-                <Badge status={l.status} />
+                <span className="text-xs text-slate-400 flex-shrink-0">{new Date(a.date).toLocaleString()}</span>
               </div>
             ))}
           </div>

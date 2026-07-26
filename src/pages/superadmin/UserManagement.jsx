@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { fetchUsers, createUserRequest, updateUserRequest, deleteUserRequest } from "../../api/usersApi";
 import { FaPlus, FaEye, FaEdit, FaTrash, FaUserCircle } from "react-icons/fa";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import Card from "../../components/common/Card";
@@ -10,16 +9,19 @@ import Pagination from "../../components/common/Pagination";
 import Breadcrumbs from "../../components/common/Breadcrumbs";
 import Modal from "../../components/common/Modal";
 import { superAdminMenuItems } from "./SuperAdminDashboard";
-import { mockUsers as initialUsers } from "../../data/mockUsers";
-import { mockDepartments } from "../../data/mockDeparments";
+import { fetchUsers, createUserRequest, updateUserRequest, deleteUserRequest } from "../../api/usersApi";
+import { fetchDepartments } from "../../api/departmentsApi";
+import { mediaUrl } from "../../utils/mediaUrl";
 
 const PAGE_SIZE = 5;
 const emptyForm = { name: "", employeeId: "", email: "", phone: "", department: "", role: "Employee", status: "Active" };
 
 const UserManagement = () => {
- const [users, setUsers] = useState([]);
-const [loading, setLoading] = useState(true);
-const [totalItems, setTotalItems] = useState(0);
+  const [users, setUsers] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [loading, setLoading] = useState(true);
+
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -33,24 +35,31 @@ const [totalItems, setTotalItems] = useState(0);
   const [form, setForm] = useState(emptyForm);
   const [formErrors, setFormErrors] = useState({});
 
-  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
-
   const loadUsers = useCallback(async () => {
-  setLoading(true);
-  try {
-    const res = await fetchUsers({
-      search, role: roleFilter, status: statusFilter, page: currentPage, limit: PAGE_SIZE,
-    });
-    setUsers(res.data);
-    setTotalItems(res.pagination.totalItems);
-  } catch (err) {
-    console.error("Failed to load users:", err);
-  } finally {
-    setLoading(false);
-  }
-}, [search, roleFilter, statusFilter, currentPage]);
+    setLoading(true);
+    try {
+      const res = await fetchUsers({
+        search, role: roleFilter, status: statusFilter, page: currentPage, limit: PAGE_SIZE,
+      });
+      setUsers(res.data);
+      setTotalItems(res.pagination.totalItems);
+    } catch (err) {
+      console.error("Failed to load users:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [search, roleFilter, statusFilter, currentPage]);
 
-useEffect(() => { loadUsers(); }, [loadUsers]);
+  useEffect(() => { loadUsers(); }, [loadUsers]);
+
+  // Load departments once, for the Add/Edit form's dropdown
+  useEffect(() => {
+    fetchDepartments("")
+      .then((res) => setDepartments(res.data))
+      .catch((err) => console.error("Failed to load departments:", err));
+  }, []);
+
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
 
   const resetFilters = (updater) => {
     updater();
@@ -65,7 +74,15 @@ useEffect(() => { loadUsers(); }, [loadUsers]);
 
   const openEdit = (user) => {
     setActiveUser(user);
-    setForm({ name: user.name, employeeId: user.employeeId, email: user.email, phone: user.phone, department: user.department, role: user.role, status: user.status });
+    setForm({
+      name: user.name,
+      employeeId: user.employee_id || user.employeeId,
+      email: user.email,
+      phone: user.phone,
+      department: user.department,
+      role: user.role,
+      status: user.status,
+    });
     setFormErrors({});
     setEditOpen(true);
   };
@@ -92,49 +109,51 @@ useEffect(() => { loadUsers(); }, [loadUsers]);
   };
 
   const handleAddSubmit = async (e) => {
-  e.preventDefault();
-  const errs = validateForm();
-  if (Object.keys(errs).length) return setFormErrors(errs);
-  try {
-    await createUserRequest(form);
-    setAddOpen(false);
-    loadUsers(); // refetch to show the new user
-  } catch (err) {
-    setFormErrors({ email: err.response?.data?.message || "Failed to create user" });
-  }
-};
-const handleEditSubmit = async (e) => {
-  e.preventDefault();
-  const errs = validateForm();
-  if (Object.keys(errs).length) return setFormErrors(errs);
-  try {
-    await updateUserRequest(activeUser.id, form);
-    setEditOpen(false);
-    loadUsers();
-  } catch (err) {
-    setFormErrors({ email: err.response?.data?.message || "Failed to update user" });
-  }
-};
+    e.preventDefault();
+    const errs = validateForm();
+    if (Object.keys(errs).length) return setFormErrors(errs);
+    try {
+      await createUserRequest(form);
+      setAddOpen(false);
+      loadUsers();
+    } catch (err) {
+      setFormErrors({ email: err.response?.data?.message || "Failed to create user" });
+    }
+  };
 
-const handleDeleteConfirm = async () => {
-  try {
-    await deleteUserRequest(activeUser.id);
-    setDeleteOpen(false);
-    loadUsers();
-  } catch (err) {
-    console.error("Failed to delete user:", err);
-  }
-};
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    const errs = validateForm();
+    if (Object.keys(errs).length) return setFormErrors(errs);
+    try {
+      await updateUserRequest(activeUser.id, form);
+      setEditOpen(false);
+      loadUsers();
+    } catch (err) {
+      setFormErrors({ email: err.response?.data?.message || "Failed to update user" });
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      await deleteUserRequest(activeUser.id);
+      setDeleteOpen(false);
+      loadUsers();
+    } catch (err) {
+      console.error("Failed to delete user:", err);
+    }
+  };
+
   const columns = [
     {
       key: "name",
       label: "Employee",
       render: (row) => (
         <div className="flex items-center gap-3">
-          <img src={row.avatar} alt={row.name} className="w-9 h-9 rounded-full object-cover" />
+          <img src={mediaUrl(row.avatar_url || row.avatar)} alt={row.name} className="w-9 h-9 rounded-full object-cover" />
           <div>
             <p className="font-medium text-slate-800">{row.name}</p>
-            <p className="text-xs text-slate-400">{row.employeeId}</p>
+            <p className="text-xs text-slate-400">{row.employee_id || row.employeeId}</p>
           </div>
         </div>
       ),
@@ -204,7 +223,7 @@ const handleDeleteConfirm = async () => {
           <label className="block text-xs font-semibold text-slate-500 mb-1.5">Department</label>
           <select value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} className={`${inputClass("department")} appearance-none cursor-pointer`}>
             <option value="">Select</option>
-            {mockDepartments.map((d) => <option key={d.id} value={d.name}>{d.name}</option>)}
+            {departments.map((d) => <option key={d.id} value={d.name}>{d.name}</option>)}
           </select>
           {formErrors.department && <p className="text-red-500 text-xs mt-1">{formErrors.department}</p>}
         </div>
@@ -274,12 +293,12 @@ const handleDeleteConfirm = async () => {
           </select>
         </div>
 
-        <Table columns={columns} data={paginatedUsers} emptyMessage="No users match your filters" />
+        <Table columns={columns} data={users} loading={loading} emptyMessage="No users match your filters" />
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
-          totalItems={filteredUsers.length}
+          totalItems={totalItems}
           pageSize={PAGE_SIZE}
         />
       </Card>
@@ -321,10 +340,10 @@ const handleDeleteConfirm = async () => {
         {activeUser && (
           <div className="space-y-5">
             <div className="flex items-center gap-4">
-              <img src={activeUser.avatar} alt={activeUser.name} className="w-16 h-16 rounded-2xl object-cover" />
+              <img src={mediaUrl(activeUser.avatar_url || activeUser.avatar)} alt={activeUser.name} className="w-16 h-16 rounded-2xl object-cover" />
               <div>
                 <p className="font-display font-bold text-lg text-slate-800">{activeUser.name}</p>
-                <p className="text-sm text-slate-400">{activeUser.employeeId}</p>
+                <p className="text-sm text-slate-400">{activeUser.employee_id || activeUser.employeeId}</p>
                 <div className="mt-1.5"><Badge status={activeUser.status} /></div>
               </div>
             </div>
@@ -333,7 +352,7 @@ const handleDeleteConfirm = async () => {
               <div><p className="text-slate-400 text-xs">Phone</p><p className="text-slate-700 font-medium">{activeUser.phone}</p></div>
               <div><p className="text-slate-400 text-xs">Department</p><p className="text-slate-700 font-medium">{activeUser.department}</p></div>
               <div><p className="text-slate-400 text-xs">Role</p><p className="text-slate-700 font-medium">{activeUser.role}</p></div>
-              <div><p className="text-slate-400 text-xs">Join Date</p><p className="text-slate-700 font-medium">{activeUser.joinDate}</p></div>
+              <div><p className="text-slate-400 text-xs">Join Date</p><p className="text-slate-700 font-medium">{activeUser.join_date ? new Date(activeUser.join_date).toLocaleDateString() : "—"}</p></div>
             </div>
           </div>
         )}

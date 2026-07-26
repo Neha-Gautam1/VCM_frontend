@@ -6,12 +6,28 @@ import Table from "../../components/common/Table";
 import Modal from "../../components/common/Modal";
 import Breadcrumbs from "../../components/common/Breadcrumbs";
 import { superAdminMenuItems } from "./SuperAdminDashboard";
-import { mockRoles as initialRoles } from "../../data/mockRoles";
+import { useEffect, useCallback } from "react";
+import { fetchRoles, createRoleRequest, updateRoleRequest, deleteRoleRequest } from "../../api/rolesApi";
 
 const emptyForm = { name: "", description: "" };
 
 const RoleManagement = () => {
-  const [roles, setRoles] = useState(initialRoles);
+  const [roles, setRoles] = useState([]);
+const [loading, setLoading] = useState(true);
+
+const loadRoles = useCallback(async () => {
+  setLoading(true);
+  try {
+    const res = await fetchRoles();
+    setRoles(res.data);
+  } catch (err) {
+    console.error("Failed to load roles:", err);
+  } finally {
+    setLoading(false);
+  }
+}, []);
+
+useEffect(() => { loadRoles(); }, [loadRoles]);
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -30,26 +46,42 @@ const RoleManagement = () => {
     return errs;
   };
 
-  const handleAddSubmit = (e) => {
-    e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length) return setFormErrors(errs);
-    setRoles([{ id: Math.max(...roles.map((r) => r.id)) + 1, name: form.name, description: form.description, usersCount: 0 }, ...roles]);
+ const handleAddSubmit = async (e) => {
+  e.preventDefault();
+  const errs = validate();
+  if (Object.keys(errs).length) return setFormErrors(errs);
+  try {
+    await createRoleRequest({ name: form.name, description: form.description });
     setAddOpen(false);
-  };
+    loadRoles();
+  } catch (err) {
+    setFormErrors({ name: err.response?.data?.message || "Failed to create role" });
+  }
+};
 
-  const handleEditSubmit = (e) => {
-    e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length) return setFormErrors(errs);
-    setRoles(roles.map((r) => (r.id === activeRole.id ? { ...r, name: form.name, description: form.description } : r)));
+const handleEditSubmit = async (e) => {
+  e.preventDefault();
+  const errs = validate();
+  if (Object.keys(errs).length) return setFormErrors(errs);
+  try {
+    await updateRoleRequest(activeRole.id, { name: form.name, description: form.description });
     setEditOpen(false);
-  };
+    loadRoles();
+  } catch (err) {
+    setFormErrors({ name: err.response?.data?.message || "Failed to update role" });
+  }
+};
 
-  const handleDeleteConfirm = () => {
-    setRoles(roles.filter((r) => r.id !== activeRole.id));
+const handleDeleteConfirm = async () => {
+  try {
+    await deleteRoleRequest(activeRole.id);
     setDeleteOpen(false);
-  };
+    loadRoles();
+  } catch (err) {
+    alert(err.response?.data?.message || "Failed to delete role");
+    setDeleteOpen(false);
+  }
+};
 
   const isSystemRole = (name) => ["Super Admin", "Department Admin", "Employee"].includes(name);
 
@@ -132,7 +164,7 @@ const RoleManagement = () => {
       </div>
 
       <Card noPadding>
-        <Table columns={columns} data={roles} emptyMessage="No roles created yet" />
+        <Table columns={columns} data={roles} loading={loading} emptyMessage="No roles created yet" />
       </Card>
 
       <Modal isOpen={addOpen} onClose={() => setAddOpen(false)} title="Create New Role" size="md"

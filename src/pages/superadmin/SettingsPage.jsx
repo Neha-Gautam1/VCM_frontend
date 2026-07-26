@@ -6,6 +6,9 @@ import Breadcrumbs from "../../components/common/Breadcrumbs";
 import ToggleSwitch from "../../components/common/ToggleSwitch";
 import { superAdminMenuItems } from "./SuperAdminDashboard";
 import { useAuth } from "../../hooks/useAuth";
+import { updateProfileRequest, changePasswordRequest } from "../../api/settingsApi";
+// ...
+
 
 const inputClass = "w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-saffron-400 focus:border-transparent transition";
 const tabs = [
@@ -23,9 +26,10 @@ const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const [saved, setSaved] = useState(false);
 
-  const [profileForm, setProfileForm] = useState({ name: user?.name || "", email: user?.email || "", phone: "+91 98765 43210", designation: "IT & Systems Head" });
-  const [passwordForm, setPasswordForm] = useState({ current: "", newPass: "", confirm: "" });
-  const [passwordError, setPasswordError] = useState("");
+const [profileForm, setProfileForm] = useState({ name: user?.name || "", email: user?.email || "", phone: "", designation: "" });
+const [passwordForm, setPasswordForm] = useState({ current: "", newPass: "", confirm: "" });
+const [passwordError, setPasswordError] = useState("");
+const [profileError, setProfileError] = useState("");
   const [theme, setTheme] = useState("light");
   const [language, setLanguage] = useState("English");
   const [notifPrefs, setNotifPrefs] = useState({

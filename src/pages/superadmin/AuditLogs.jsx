@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FaDownload, FaFilter, FaClipboardList, FaGlobe } from "react-icons/fa";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import Card from "../../components/common/Card";
@@ -8,33 +8,59 @@ import SearchBox from "../../components/common/SearchBox";
 import Pagination from "../../components/common/Pagination";
 import Breadcrumbs from "../../components/common/Breadcrumbs";
 import { superAdminMenuItems } from "./SuperAdminDashboard";
-import { mockAuditLogs, auditModules, auditSeverities } from "../../data/mockAuditLogs";
+import { auditModules, auditSeverities } from "../../data/mockAuditLogs";
+import { fetchAuditLogs, exportAuditLogsRequest } from "../../api/auditLogsApi";
 
 const PAGE_SIZE = 6;
 const severityBadge = { Info: "Active", Warning: "Pending", Critical: "Rejected" };
 
 const AuditLogs = () => {
+  const [logs, setLogs] = useState([]);
+  const [totalItems, setTotalItems] = useState(0);
   const [search, setSearch] = useState("");
   const [moduleFilter, setModuleFilter] = useState("All");
   const [severityFilter, setSeverityFilter] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = useMemo(() => {
-    return mockAuditLogs.filter((log) => {
-      const matchesSearch =
-        log.user.toLowerCase().includes(search.toLowerCase()) ||
-        log.activity.toLowerCase().includes(search.toLowerCase()) ||
-        log.ip.includes(search);
-      const matchesModule = moduleFilter === "All" || log.module === moduleFilter;
-      const matchesSeverity = severityFilter === "All" || log.severity === severityFilter;
-      return matchesSearch && matchesModule && matchesSeverity;
-    });
-  }, [search, moduleFilter, severityFilter]);
+  const loadLogs = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetchAuditLogs({
+        search, module: moduleFilter, severity: severityFilter, page: currentPage, limit: PAGE_SIZE,
+      });
+      setLogs(res.data);
+      setTotalItems(res.pagination.totalItems);
+    } catch (err) {
+      console.error("Failed to load audit logs:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [search, moduleFilter, severityFilter, currentPage]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  useEffect(() => { loadLogs(); }, [loadLogs]);
+
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
 
   const resetAndSet = (setter) => (val) => { setter(val); setCurrentPage(1); };
+
+  const [summaryCounts, setSummaryCounts] = useState({ total: 0, warnings: 0, critical: 0 });
+
+useEffect(() => {
+  Promise.all([
+    fetchAuditLogs({ limit: 1 }),
+    fetchAuditLogs({ severity: "Warning", limit: 1 }),
+    fetchAuditLogs({ severity: "Critical", limit: 1 }),
+  ])
+    .then(([all, warnings, critical]) => {
+      setSummaryCounts({
+        total: all.pagination.totalItems,
+        warnings: warnings.pagination.totalItems,
+        critical: critical.pagination.totalItems,
+      });
+    })
+    .catch((err) => console.error("Failed to load audit summary:", err));
+}, []);
 
   const columns = [
     { key: "date", label: "Date & Time" },
@@ -54,18 +80,9 @@ const AuditLogs = () => {
     { key: "severity", label: "Severity", render: (row) => <Badge status={severityBadge[row.severity]}>{row.severity}</Badge> },
   ];
 
-  const handleExport = () => {
-    const headers = ["Date", "User", "Role", "Activity", "Module", "IP Address", "Severity"];
-    const rows = filtered.map((l) => [l.date, l.user, l.role, l.activity, l.module, l.ip, l.severity]);
-    const csv = [headers, ...rows].map((r) => r.map((c) => `"${c}"`).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "vcm_audit_logs.csv";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+ const handleExport = () => {
+  exportAuditLogsRequest({ search, module: moduleFilter, severity: severityFilter });
+};
 
   return (
     <DashboardLayout menuItems={superAdminMenuItems} pageTitle="Audit Logs" profilePath="/superadmin/profile" settingsPath="/superadmin/settings">

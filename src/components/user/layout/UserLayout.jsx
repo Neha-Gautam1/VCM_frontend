@@ -4,7 +4,7 @@ import { useAuth } from "../../../hooks/useAuth";
 import {
   FaOm, FaTachometerAlt, FaUserCircle, FaBell,
   FaHandsHelping, FaBook, FaBrain, FaNewspaper,
-  FaCog, FaHeadset, FaSignOutAlt, FaTimes, FaChevronLeft,
+  FaCog, FaHeadset, FaSignOutAlt, FaTimes, FaChevronLeft, FaSitemap,
   FaChevronRight, FaBars, FaSearch, FaLightbulb,
   FaChevronDown, FaChevronUp
 } from "react-icons/fa";
@@ -55,6 +55,7 @@ const NAV_GROUPS = [
       { label: "News & Updates", path: "/user/news",          icon: FaNewspaper },
       { label: "Notifications",  path: "/user/notifications", icon: FaBell },
       { label: "Suggestions",    path: "/user/suggestions",   icon: FaLightbulb },
+      { label: "Organization",   path: "/user/organization",  icon: FaSitemap },
       { label: "Support",        path: "/user/support",       icon: FaHeadset },
       { label: "Settings",       path: "/user/settings",      icon: FaCog },
     ],

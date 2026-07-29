@@ -3,6 +3,7 @@ import Hero from "../../components/landing/Hero";
 import About from "../../components/landing/About";
 import VisionMission from "../../components/landing/VisionMission";
 import LeadershipMessage from "../../components/landing/LeadershipMessage";
+import Governance from "../../components/landing/Governance";
 import OrganizationOverview from "../../components/landing/OragnisationOverview";
 import DepartmentOverview from "../../components/landing/DepartmentOverview";
 import CampusOverview from "../../components/landing/CampusOverview";
@@ -21,6 +22,7 @@ const LandingPage = () => {
       <About />
       <VisionMission />
       <LeadershipMessage />
+      <Governance />
       <OrganizationOverview />
       <DepartmentOverview />
       <CampusOverview />

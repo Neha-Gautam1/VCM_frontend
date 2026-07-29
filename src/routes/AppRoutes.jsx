@@ -65,6 +65,7 @@ import NewsPage from "../pages/user/News";
 import NotificationsPage from "../pages/user/Notifications";
 import SupportPage from "../pages/user/Feedback";
 import SuggestionsPage from "../pages/user/Suggestions";
+import UserOrganizationChart from "../pages/user/OrganizationChart";
 import SettingsUser from "../pages/user/Settings";
 
 const UR = ({ children }) => (
@@ -141,6 +142,7 @@ const AppRoutes = () => {
       <Route path="/user/notifications" element={<UR><NotificationsPage /></UR>} />
       <Route path="/user/support"       element={<UR><SupportPage /></UR>} />
       <Route path="/user/suggestions"   element={<UR><SuggestionsPage /></UR>} />
+      <Route path="/user/organization"  element={<UR><UserOrganizationChart /></UR>} />
       <Route path="/user/settings"      element={<UR><SettingsUser /></UR>} />
 
       {/* Legacy user routes for backwards compatibility */}

@@ -5,6 +5,7 @@ import { FaOm, FaBars, FaTimes } from "react-icons/fa";
 const navLinks = [
   { label: "Home", href: "#home" },
   { label: "About", href: "#about" },
+  { label: "Governance", href: "#governance" },
   { label: "Departments", href: "#departments" },
   { label: "Gallery", href: "#gallery" },
   { label: "Careers", href: "#careers" },

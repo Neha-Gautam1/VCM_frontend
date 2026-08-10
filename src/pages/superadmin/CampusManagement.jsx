@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaBuilding, FaBed, FaMapMarkerAlt, FaImages, FaMapMarkedAlt, FaLayerGroup } from "react-icons/fa";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import Card from "../../components/common/Card";
 import Badge from "../../components/common/Badge";
 import Breadcrumbs from "../../components/common/Breadcrumbs";
 import { superAdminMenuItems } from "./SuperAdminDashboard";
-import { campusBuildings, campusHostels, campusOffices, campusGallery } from "../../data/mockCampus";
+import {
+  fetchCampusOverview, fetchBuildings, fetchHostels, fetchOffices, fetchCampusGallery,
+} from "../../api/campusApi";
 
 const tabs = [
   { key: "buildings", label: "Buildings", icon: FaBuilding },
@@ -18,6 +20,30 @@ const buildingStatusMap = { "Active": "Active", "Under Construction": "Pending" 
 
 const CampusManagement = () => {
   const [activeTab, setActiveTab] = useState("buildings");
+  const [overview, setOverview] = useState({ acres: 0, buildings: 0, hostels: 0, offices: 0 });
+  const [campusBuildings, setCampusBuildings] = useState([]);
+  const [campusHostels, setCampusHostels] = useState([]);
+  const [campusOffices, setCampusOffices] = useState([]);
+  const [campusGallery, setCampusGallery] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchCampusOverview().then((res) => setOverview(res.data)).catch(console.error);
+  }, []);
+
+  // Fetch only the active tab's data, on demand — avoids loading all 4 tabs' data up front
+  useEffect(() => {
+    setLoading(true);
+    const loaders = {
+      buildings: () => fetchBuildings().then((res) => setCampusBuildings(res.data)),
+      hostels: () => fetchHostels().then((res) => setCampusHostels(res.data)),
+      offices: () => fetchOffices().then((res) => setCampusOffices(res.data)),
+      gallery: () => fetchCampusGallery().then((res) => setCampusGallery(res.data)),
+    };
+    loaders[activeTab]()
+      .catch((err) => console.error(`Failed to load ${activeTab}:`, err))
+      .finally(() => setLoading(false));
+  }, [activeTab]);
 
   return (
     <DashboardLayout menuItems={superAdminMenuItems} pageTitle="Campus Management" profilePath="/superadmin/profile" settingsPath="/superadmin/settings">
@@ -29,22 +55,22 @@ const CampusManagement = () => {
 
       {/* Campus Overview Cards */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
-        <Card className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-saffron-50 flex items-center justify-center flex-shrink-0"><FaMapMarkedAlt className="text-saffron-600" /></div>
-          <div><p className="text-xl font-display font-bold text-slate-800">70</p><p className="text-xs text-slate-500">Acres Campus</p></div>
-        </Card>
-        <Card className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0"><FaBuilding className="text-blue-600" /></div>
-          <div><p className="text-xl font-display font-bold text-slate-800">{campusBuildings.length}</p><p className="text-xs text-slate-500">Buildings</p></div>
-        </Card>
-        <Card className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0"><FaBed className="text-emerald-600" /></div>
-          <div><p className="text-xl font-display font-bold text-slate-800">{campusHostels.length}</p><p className="text-xs text-slate-500">Hostels</p></div>
-        </Card>
-        <Card className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0"><FaMapMarkerAlt className="text-purple-600" /></div>
-          <div><p className="text-xl font-display font-bold text-slate-800">{campusOffices.length}</p><p className="text-xs text-slate-500">Office Locations</p></div>
-        </Card>
+       <Card className="flex items-center gap-4">
+  <div className="w-12 h-12 rounded-xl bg-saffron-50 flex items-center justify-center flex-shrink-0"><FaMapMarkedAlt className="text-saffron-600" /></div>
+  <div><p className="text-xl font-display font-bold text-slate-800">{overview.acres}</p><p className="text-xs text-slate-500">Acres Campus</p></div>
+</Card>
+<Card className="flex items-center gap-4">
+  <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0"><FaBuilding className="text-blue-600" /></div>
+  <div><p className="text-xl font-display font-bold text-slate-800">{overview.buildings}</p><p className="text-xs text-slate-500">Buildings</p></div>
+</Card>
+<Card className="flex items-center gap-4">
+  <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0"><FaBed className="text-emerald-600" /></div>
+  <div><p className="text-xl font-display font-bold text-slate-800">{overview.hostels}</p><p className="text-xs text-slate-500">Hostels</p></div>
+</Card>
+<Card className="flex items-center gap-4">
+  <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0"><FaMapMarkerAlt className="text-purple-600" /></div>
+  <div><p className="text-xl font-display font-bold text-slate-800">{overview.offices}</p><p className="text-xs text-slate-500">Office Locations</p></div>
+</Card>
       </div>
 
       {/* Tabs */}

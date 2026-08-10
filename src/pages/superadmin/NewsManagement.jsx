@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FaPlus, FaEdit, FaTrash, FaCheckCircle, FaFilter } from "react-icons/fa";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import Card from "../../components/common/Card";
@@ -8,42 +8,72 @@ import Modal from "../../components/common/Modal";
 import Breadcrumbs from "../../components/common/Breadcrumbs";
 import SearchBox from "../../components/common/SearchBox";
 import { superAdminMenuItems } from "./SuperAdminDashboard";
-import { mockNews as initialNews, newsCategories } from "../../data/mockNews";
+import { newsCategories } from "../../data/mockNews"; // static category list stays local — it's just UI config
+import { fetchNews, createNewsRequest, toggleNewsPublishRequest, deleteNewsRequest } from "../../api/newsApi";
 
 const emptyForm = { title: "", category: "Announcement", excerpt: "", author: "" };
 const inputClass = "w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-saffron-400 focus:border-transparent transition";
 
 const NewsManagement = () => {
-  const [news, setNews] = useState(initialNews);
+  const [news, setNews] = useState([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
+  const [loading, setLoading] = useState(true);
 
+  const loadNews = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetchNews({ search, category });
+      setNews(res.data);
+    } catch (err) {
+      console.error("Failed to load news:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [search, category]);
+
+  useEffect(() => { loadNews(); }, [loadNews]);
   const [addOpen, setAddOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [activeNews, setActiveNews] = useState(null);
   const [form, setForm] = useState(emptyForm);
 
   const filtered = news.filter(
-    (n) => (category === "All" || n.category === category) && n.title.toLowerCase().includes(search.toLowerCase())
-  );
+  (n) => (category === "All" || n.category === category) && n.title.toLowerCase().includes(search.toLowerCase())
+);
 
   const openAdd = () => { setForm(emptyForm); setAddOpen(true); };
   const openDelete = (item) => { setActiveNews(item); setDeleteOpen(true); };
 
-  const handleAddSubmit = (e) => {
-    e.preventDefault();
-    setNews([{ id: Date.now(), ...form, status: "Draft", date: new Date().toISOString().split("T")[0] }, ...news]);
+ const handleAddSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    await createNewsRequest(form);
     setAddOpen(false);
-  };
+    loadNews();
+  } catch (err) {
+    console.error("Failed to create article:", err);
+  }
+};
 
-  const togglePublish = (id) => {
-    setNews(news.map((n) => (n.id === id ? { ...n, status: n.status === "Published" ? "Draft" : "Published" } : n)));
-  };
+const togglePublish = async (id) => {
+  try {
+    await toggleNewsPublishRequest(id);
+    loadNews();
+  } catch (err) {
+    console.error("Failed to toggle publish status:", err);
+  }
+};
 
-  const handleDeleteConfirm = () => {
-    setNews(news.filter((n) => n.id !== activeNews.id));
+const handleDeleteConfirm = async () => {
+  try {
+    await deleteNewsRequest(activeNews.id);
     setDeleteOpen(false);
-  };
+    loadNews();
+  } catch (err) {
+    console.error("Failed to delete article:", err);
+  }
+};
 
   const columns = [
     {
@@ -113,7 +143,7 @@ const NewsManagement = () => {
             ))}
           </div>
         </div>
-        <Table columns={columns} data={filtered} emptyMessage="No news articles found" />
+       <Table columns={columns} data={news} loading={loading} emptyMessage="No news articles found" />
       </Card>
 
       <Modal

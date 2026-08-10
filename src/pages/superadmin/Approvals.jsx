@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FaCheck, FaTimes, FaEye, FaCheckCircle, FaHourglassHalf } from "react-icons/fa";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import Card from "../../components/common/Card";
@@ -8,15 +8,32 @@ import Breadcrumbs from "../../components/common/Breadcrumbs";
 import SearchBox from "../../components/common/SearchBox";
 import EmptyState from "../../components/common/EmptyState";
 import { superAdminMenuItems } from "./SuperAdminDashboard";
-import { mockApprovals as initialApprovals, approvalTypes } from "../../data/mockApprovals";
+import { approvalTypes } from "../../data/mockApprovals";
+import { fetchApprovals, approveRequestApi, rejectRequestApi } from "../../api/approvalsApi";
+import { mediaUrl } from "../../utils/mediaUrl";
 
 const statusTabs = ["Pending", "Approved", "Rejected", "All"];
 
 const Approvals = () => {
-  const [approvals, setApprovals] = useState(initialApprovals);
+  const [approvals, setApprovals] = useState([]);
   const [statusTab, setStatusTab] = useState("Pending");
   const [typeFilter, setTypeFilter] = useState("All");
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  const loadApprovals = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetchApprovals({ status: statusTab, type: typeFilter, search });
+      setApprovals(res.data);
+    } catch (err) {
+      console.error("Failed to load approvals:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [statusTab, typeFilter, search]);
+
+  useEffect(() => { loadApprovals(); }, [loadApprovals]);
   const [viewOpen, setViewOpen] = useState(false);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [activeApproval, setActiveApproval] = useState(null);
@@ -31,25 +48,47 @@ const Approvals = () => {
     });
   }, [approvals, statusTab, typeFilter, search]);
 
-  const counts = {
-    Pending: approvals.filter((a) => a.status === "Pending").length,
-    Approved: approvals.filter((a) => a.status === "Approved").length,
-    Rejected: approvals.filter((a) => a.status === "Rejected").length,
+const [counts, setCounts] = useState({ Pending: 0, Approved: 0, Rejected: 0 });
+
+useEffect(() => {
+  const loadCounts = async () => {
+    try {
+      const [pending, approved, rejected] = await Promise.all([
+        fetchApprovals({ status: "Pending" }),
+        fetchApprovals({ status: "Approved" }),
+        fetchApprovals({ status: "Rejected" }),
+      ]);
+      setCounts({ Pending: pending.data.length, Approved: approved.data.length, Rejected: rejected.data.length });
+    } catch (err) {
+      console.error("Failed to load approval counts:", err);
+    }
   };
+  loadCounts();
+}, [approvals]); // refetch counts whenever the main list changes (e.g. after an approve/reject action)
 
   const openView = (item) => { setActiveApproval(item); setViewOpen(true); };
   const openReject = (item) => { setActiveApproval(item); setRejectReason(""); setRejectOpen(true); };
 
-  const handleApprove = (id) => {
-    setApprovals(approvals.map((a) => (a.id === id ? { ...a, status: "Approved" } : a)));
+  const handleApprove = async (id) => {
+  try {
+    await approveRequestApi(id);
     setViewOpen(false);
-  };
+    loadApprovals();
+  } catch (err) {
+    console.error("Failed to approve request:", err);
+  }
+};
 
-  const handleRejectConfirm = () => {
-    setApprovals(approvals.map((a) => (a.id === activeApproval.id ? { ...a, status: "Rejected" } : a)));
+const handleRejectConfirm = async () => {
+  try {
+    await rejectRequestApi(activeApproval.id, rejectReason);
     setRejectOpen(false);
     setViewOpen(false);
-  };
+    loadApprovals();
+  } catch (err) {
+    console.error("Failed to reject request:", err);
+  }
+};
 
   return (
     <DashboardLayout menuItems={superAdminMenuItems} pageTitle="Approvals" profilePath="/superadmin/profile" settingsPath="/superadmin/settings">
@@ -103,7 +142,7 @@ const Approvals = () => {
             {filtered.map((item) => (
               <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-4">
                 <div className="flex items-center gap-3 min-w-0">
-                  <img src={item.avatar} alt={item.requester} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+                  <img src={mediaUrl(item.avatar)} alt={item.requester} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-slate-800 truncate">{item.type}</p>
                     <p className="text-xs text-slate-400 truncate">{item.requester} · {item.department} · {item.submittedOn}</p>

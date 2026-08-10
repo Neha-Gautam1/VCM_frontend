@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { fetchSystemConfig, updateSystemConfigRequest } from "../../api/systemConfigApi";
 import { FaSave, FaImage, FaExclamationTriangle, FaPalette, FaClock } from "react-icons/fa";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import Card from "../../components/common/Card";
@@ -16,20 +17,44 @@ const themeColors = [
 ];
 
 const SystemConfiguration = () => {
-  const [portalName, setPortalName] = useState("VCM Employee Portal");
-  const [tagline, setTagline] = useState("Vrindavan Chandrodaya Mandir");
+  const [portalName, setPortalName] = useState("");
+  const [tagline, setTagline] = useState("");
   const [theme, setTheme] = useState("saffron");
   const [darkMode, setDarkMode] = useState(false);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
-  const [maintenanceMsg, setMaintenanceMsg] = useState("The portal is currently undergoing scheduled maintenance. Please check back shortly.");
+  const [maintenanceMsg, setMaintenanceMsg] = useState("");
   const [sessionTimeout, setSessionTimeout] = useState("30");
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleSave = () => {
+  useEffect(() => {
+    fetchSystemConfig()
+      .then((res) => {
+        const c = res.data;
+        setPortalName(c.portalName);
+        setTagline(c.tagline);
+        setTheme(c.theme);
+        setDarkMode(c.darkMode);
+        setMaintenanceMode(c.maintenanceMode);
+        setMaintenanceMsg(c.maintenanceMsg || "");
+        setSessionTimeout(String(c.sessionTimeout));
+      })
+      .catch((err) => console.error("Failed to load system config:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+const handleSave = async () => {
+  try {
+    await updateSystemConfigRequest({
+      portalName, tagline, theme, darkMode, maintenanceMode, maintenanceMsg,
+      sessionTimeout: Number(sessionTimeout),
+    });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
-  };
-
+  } catch (err) {
+    console.error("Failed to save system configuration:", err);
+  }
+};
   return (
     <DashboardLayout menuItems={superAdminMenuItems} pageTitle="System Configuration" profilePath="/superadmin/profile" settingsPath="/superadmin/settings">
       <Breadcrumbs items={["Super Admin", "System Configuration"]} />

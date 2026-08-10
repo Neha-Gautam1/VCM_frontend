@@ -1,4 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import {
+  fetchHomepageCms, updateBannerRequest, updateAboutRequest, updateVisionRequest,
+  updateMissionRequest, updateLeadershipRequest, addCardRequest, updateCardRequest, deleteCardRequest,
+} from "../../api/homepageCmsApi";
 import { FaSave, FaEye, FaImage, FaPlus, FaTrash, FaEdit } from "react-icons/fa";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import Card from "../../components/common/Card";
@@ -33,63 +37,82 @@ const HomepageCMS = () => {
   const [saved, setSaved] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
 
-  const [banner, setBanner] = useState({
-    heading: "Empowering the Divine Mission Through Unified Service",
-    subheading: "The official employee portal of Vrindavan Chandrodaya Mandir",
-    ctaText: "Employee Login",
-    image: "https://images.unsplash.com/photo-1609950547346-a4f431435b2b?w=800&q=80",
-  });
+ const [banner, setBanner] = useState({ heading: "", subheading: "", ctaText: "", image: "" });
+const [about, setAbout] = useState({ heading: "", body: "", image: "" });
+const [vision, setVision] = useState({ text: "" });
+const [mission, setMission] = useState({ text: "" });
+const [leadership, setLeadership] = useState({ name: "", designation: "", message: "", photo: "" });
+const [cards, setCards] = useState([]);
+const [loading, setLoading] = useState(true);
 
-  const [about, setAbout] = useState({
-    heading: "A Sacred Institution, Powered by Dedicated People",
-    body: "Vrindavan Chandrodaya Mandir is a landmark spiritual and cultural institution built to celebrate the life and teachings of Sri Krishna...",
-    image: "https://images.unsplash.com/photo-1548013146-72479768bada?w=700&q=80",
-  });
-
-  const [vision, setVision] = useState({
-    text: "To establish Vrindavan Chandrodaya Mandir as a global center of spiritual awakening, cultural preservation and devotional service.",
-  });
-
-  const [mission, setMission] = useState({
-    text: "To build and nurture a dedicated community of employees and volunteers who work with integrity, compassion and excellence.",
-  });
-
-  const [leadership, setLeadership] = useState({
-    name: "Acharya Devakinandan Das",
-    designation: "President, Vrindavan Chandrodaya Mandir",
-    message: "Every employee who serves at Vrindavan Chandrodaya Mandir is part of something far greater than a workplace...",
-    photo: "https://i.pravatar.cc/150?img=60",
-  });
-
-  const [cards, setCards] = useState([
-    { id: 1, title: "Structured Hierarchy", desc: "Clear reporting lines across the organization." },
-    { id: 2, title: "Role-Based Access", desc: "Tailored portal experience for every user." },
-    { id: 3, title: "Cross-Department Sync", desc: "Departments collaborate on shared initiatives." },
-  ]);
+useEffect(() => {
+  fetchHomepageCms()
+    .then((res) => {
+      setBanner(res.data.banner);
+      setAbout(res.data.about);
+      setVision(res.data.vision);
+      setMission(res.data.mission);
+      setLeadership(res.data.leadership);
+      setCards(res.data.cards);
+    })
+    .catch((err) => console.error("Failed to load homepage CMS content:", err))
+    .finally(() => setLoading(false));
+}, []);
   const [cardModalOpen, setCardModalOpen] = useState(false);
   const [activeCard, setActiveCard] = useState(null);
   const [cardForm, setCardForm] = useState({ title: "", desc: "" });
 
-  const handleSave = () => {
+  const runSave = async (saveFn) => {
+  try {
+    await saveFn();
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
-  };
+  } catch (err) {
+    console.error("Failed to save:", err);
+    alert(err.response?.data?.message || "Failed to save changes");
+  }
+};
+
+const handleSaveBanner = () => runSave(() => updateBannerRequest(banner));
+const handleSaveAbout = () => runSave(() => updateAboutRequest(about));
+const handleSaveVision = () => runSave(() => updateVisionRequest(vision));
+const handleSaveMission = () => runSave(() => updateMissionRequest(mission));
+const handleSaveLeadership = () => runSave(() => updateLeadershipRequest(leadership));
 
   const openAddCard = () => { setActiveCard(null); setCardForm({ title: "", desc: "" }); setCardModalOpen(true); };
   const openEditCard = (card) => { setActiveCard(card); setCardForm({ title: card.title, desc: card.desc }); setCardModalOpen(true); };
-  const handleCardSubmit = (e) => {
-    e.preventDefault();
+  const reloadCards = () => {
+  fetchHomepageCms().then((res) => setCards(res.data.cards)).catch(console.error);
+};
+
+const handleCardSubmit = async (e) => {
+  e.preventDefault();
+  try {
     if (activeCard) {
-      setCards(cards.map((c) => (c.id === activeCard.id ? { ...c, ...cardForm } : c)));
+      await updateCardRequest(activeCard.id, cardForm);
     } else {
-      setCards([...cards, { id: Date.now(), ...cardForm }]);
+      await addCardRequest(cardForm);
     }
     setCardModalOpen(false);
-  };
-  const deleteCard = (id) => setCards(cards.filter((c) => c.id !== id));
+    reloadCards();
+  } catch (err) {
+    console.error("Failed to save card:", err);
+  }
+};
+
+const deleteCard = async (id) => {
+  try {
+    await deleteCardRequest(id);
+    reloadCards();
+  } catch (err) {
+    console.error("Failed to delete card:", err);
+  }
+};
 
   return (
+    
     <DashboardLayout menuItems={superAdminMenuItems} pageTitle="Homepage CMS" profilePath="/superadmin/profile" settingsPath="/superadmin/settings">
+      {loading && <p className="text-slate-400 text-sm mb-6">Loading content...</p>}
       <Breadcrumbs items={["Super Admin", "Homepage CMS"]} />
       <div className="mt-3 mb-6">
         <h2 className="font-display text-2xl font-bold text-slate-800">Homepage CMS</h2>

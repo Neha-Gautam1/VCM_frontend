@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FaPlus, FaEdit, FaTrash, FaCheckCircle, FaBullhorn } from "react-icons/fa";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import Card from "../../components/common/Card";
@@ -8,7 +8,8 @@ import Modal from "../../components/common/Modal";
 import Breadcrumbs from "../../components/common/Breadcrumbs";
 import SearchBox from "../../components/common/SearchBox";
 import { superAdminMenuItems } from "./SuperAdminDashboard";
-import { mockAnnouncements as initialAnnouncements, audienceOptions } from "../../data/mockAnnouncemenrs";
+import { audienceOptions } from "../../data/mockAnnouncements";
+import { fetchAnnouncements, createAnnouncementRequest, toggleAnnouncementPublishRequest, deleteAnnouncementRequest } from "../../api/announcementsApi";
 
 const emptyForm = { title: "", audience: "All Employees", priority: "Medium" };
 const inputClass = "w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-saffron-400 focus:border-transparent transition";
@@ -20,8 +21,23 @@ const priorityStyles = {
 };
 
 const AnnouncementManagement = () => {
-  const [announcements, setAnnouncements] = useState(initialAnnouncements);
+  const [announcements, setAnnouncements] = useState([]);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  const loadAnnouncements = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetchAnnouncements({ search });
+      setAnnouncements(res.data);
+    } catch (err) {
+      console.error("Failed to load announcements:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [search]);
+
+  useEffect(() => { loadAnnouncements(); }, [loadAnnouncements]);
 
   const [addOpen, setAddOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -33,20 +49,35 @@ const AnnouncementManagement = () => {
   const openAdd = () => { setForm(emptyForm); setAddOpen(true); };
   const openDelete = (item) => { setActiveItem(item); setDeleteOpen(true); };
 
-  const handleAddSubmit = (e) => {
-    e.preventDefault();
-    setAnnouncements([{ id: Date.now(), ...form, status: "Draft", date: new Date().toISOString().split("T")[0] }, ...announcements]);
+ const handleAddSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    await createAnnouncementRequest(form);
     setAddOpen(false);
-  };
+    loadAnnouncements();
+  } catch (err) {
+    console.error("Failed to create announcement:", err);
+  }
+};
 
-  const togglePublish = (id) => {
-    setAnnouncements(announcements.map((a) => (a.id === id ? { ...a, status: a.status === "Published" ? "Draft" : "Published" } : a)));
-  };
+const togglePublish = async (id) => {
+  try {
+    await toggleAnnouncementPublishRequest(id);
+    loadAnnouncements();
+  } catch (err) {
+    console.error("Failed to toggle publish status:", err);
+  }
+};
 
-  const handleDeleteConfirm = () => {
-    setAnnouncements(announcements.filter((a) => a.id !== activeItem.id));
+const handleDeleteConfirm = async () => {
+  try {
+    await deleteAnnouncementRequest(activeItem.id);
     setDeleteOpen(false);
-  };
+    loadAnnouncements();
+  } catch (err) {
+    console.error("Failed to delete announcement:", err);
+  }
+};
 
   const columns = [
     { key: "title", label: "Announcement", render: (row) => <p className="font-medium text-slate-800 max-w-xs truncate">{row.title}</p> },

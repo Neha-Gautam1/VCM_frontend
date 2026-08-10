@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FaPlus, FaBook, FaVideo, FaFileAlt, FaTrash, FaSearch, FaUpload } from "react-icons/fa";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import Card from "../../components/common/Card";
@@ -7,7 +7,9 @@ import Breadcrumbs from "../../components/common/Breadcrumbs";
 import SearchBox from "../../components/common/SearchBox";
 import EmptyState from "../../components/common/EmptyState";
 import { superAdminMenuItems } from "./SuperAdminDashboard";
-import { mockLibraryItems as initialItems, libraryTypes, libraryCategories } from "../../data/mockLibrary";
+import { libraryTypes, libraryCategories } from "../../data/mockLibrary";
+import { fetchLibraryResources, createLibraryResourceRequest, deleteLibraryResourceRequest } from "../../api/libraryApi";
+import { mediaUrl } from "../../utils/mediaUrl";
 
 const typeIcons = { Book: FaBook, Video: FaVideo, Article: FaFileAlt };
 const typeColors = { Book: "bg-blue-50 text-blue-600", Video: "bg-red-50 text-red-500", Article: "bg-emerald-50 text-emerald-600" };
@@ -16,10 +18,25 @@ const emptyForm = { title: "", type: "Book", category: "Scripture", author: "" }
 const inputClass = "w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-saffron-400 focus:border-transparent transition";
 
 const SpiritualLibrary = () => {
-  const [items, setItems] = useState(initialItems);
+  const [items, setItems] = useState([]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
   const [categoryFilter, setCategoryFilter] = useState("All");
+  const [loading, setLoading] = useState(true);
+
+  const loadItems = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetchLibraryResources({ search, type: typeFilter, category: categoryFilter });
+      setItems(res.data);
+    } catch (err) {
+      console.error("Failed to load library resources:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [search, typeFilter, categoryFilter]);
+
+  useEffect(() => { loadItems(); }, [loadItems]);
 
   const [uploadOpen, setUploadOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -37,17 +54,27 @@ const SpiritualLibrary = () => {
 
   const openDelete = (item) => { setActiveItem(item); setDeleteOpen(true); };
 
-  const handleUploadSubmit = (e) => {
-    e.preventDefault();
-    setItems([{ id: Date.now(), ...form, addedOn: new Date().toISOString().split("T")[0], thumbnail: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&q=80" }, ...items]);
+ const handleUploadSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    await createLibraryResourceRequest(form); // no thumbnail file wired in this pass — uses backend's fallback image
     setForm(emptyForm);
     setUploadOpen(false);
-  };
+    loadItems();
+  } catch (err) {
+    console.error("Failed to add resource:", err);
+  }
+};
 
-  const handleDeleteConfirm = () => {
-    setItems(items.filter((i) => i.id !== activeItem.id));
+const handleDeleteConfirm = async () => {
+  try {
+    await deleteLibraryResourceRequest(activeItem.id);
     setDeleteOpen(false);
-  };
+    loadItems();
+  } catch (err) {
+    console.error("Failed to delete resource:", err);
+  }
+};
 
   const counts = {
     Book: items.filter((i) => i.type === "Book").length,
@@ -106,7 +133,7 @@ const SpiritualLibrary = () => {
               return (
                 <div key={item.id} className="group relative rounded-2xl overflow-hidden shadow-card hover:shadow-lg transition-shadow">
                   <div className="relative h-36">
-                    <img src={item.thumbnail} alt={item.title} className="w-full h-full object-cover" />
+                   <img src={mediaUrl(item.thumbnail)} alt={item.title} className="w-full h-full object-cover" />
                     <div className={`absolute top-2.5 left-2.5 w-8 h-8 rounded-lg flex items-center justify-center ${typeColors[item.type]} backdrop-blur`}>
                       <Icon className="text-xs" />
                     </div>

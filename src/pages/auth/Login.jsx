@@ -44,44 +44,23 @@ const Login = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const validationErrors = validate();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-
-    // Role-specific validation
-    if (form.role === ROLES.DEPARTMENT_ADMIN) {
-      if (form.email !== "deptadmin@gmail.com" || form.password !== "department") {
-        setAuthError("Invalid credentials for Department Admin. Use deptadmin@gmail.com / department");
-        return;
-      }
-    }
-    
-    // USER ROLE VALIDATION
-    if (form.role === ROLES.USER) {
-      const { emailValid, passwordValid } = validateUserCredentials(form.email, form.password);
-      
-      if (!emailValid) {
-        setAuthError("Invalid email format. Use: user<number>@vcm.org.in (e.g., user1@vcm.org.in)");
-        return;
-      }
-      
-      if (!passwordValid) {
-        setAuthError("Invalid password format. Use: user@<number> (e.g., user@123)");
-        return;
-      }
-    }
-
-    setSubmitting(true);
-    setTimeout(() => {
-      const sessionUser = login({ email: form.email, role: form.role });
-      setSubmitting(false);
-      navigate(ROLE_DASHBOARD_PATH[sessionUser.role]);
-    }, 600);
-  };
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  const validationErrors = validate();
+  if (Object.keys(validationErrors).length > 0) {
+    setErrors(validationErrors);
+    return;
+  }
+  setSubmitting(true);
+  try {
+    const sessionUser = await login(form.email, form.password);
+    navigate(ROLE_DASHBOARD_PATH[sessionUser.role]);
+  } catch (err) {
+    setErrors({ password: err.response?.data?.message || "Login failed. Please try again." });
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   return (
     <AuthLayout title="Welcome back" subtitle="Sign in to access your dashboard">

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FaPlus, FaEdit, FaTrash, FaUsers, FaUserTie, FaBuilding } from "react-icons/fa";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import Card from "../../components/common/Card";
@@ -6,9 +6,10 @@ import Modal from "../../components/common/Modal";
 import Breadcrumbs from "../../components/common/Breadcrumbs";
 import SearchBox from "../../components/common/SearchBox";
 import EmptyState from "../../components/common/EmptyState";
+import Skeleton from "../../components/common/Skeleton";
 import { superAdminMenuItems } from "./SuperAdminDashboard";
-import { mockDepartments as initialDepartments } from "../../data/mockDeparments";
-import { mockUsers } from "../../data/mockUsers";
+import { fetchDepartments, createDepartmentRequest, updateDepartmentRequest, deleteDepartmentRequest } from "../../api/departmentsApi";
+import { fetchUsers } from "../../api/usersApi";
 
 const colorOptions = [
   "bg-blue-100 text-blue-700", "bg-amber-100 text-amber-700", "bg-pink-100 text-pink-700",
@@ -21,8 +22,31 @@ const emptyForm = { name: "", head: "", employeeCount: "", description: "" };
 const potentialHeads = mockUsers.map((u) => u.name);
 
 const DepartmentManagement = () => {
-  const [departments, setDepartments] = useState(initialDepartments);
+  const [departments, setDepartments] = useState([]);
+  const [potentialHeads, setPotentialHeads] = useState([]);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  const loadDepartments = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetchDepartments(search);
+      setDepartments(res.data);
+    } catch (err) {
+      console.error("Failed to load departments:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [search]);
+
+  useEffect(() => { loadDepartments(); }, [loadDepartments]);
+
+  // Load the list of users once, to populate the "Department Head" dropdown
+  useEffect(() => {
+    fetchUsers({ limit: 1000 })
+      .then((res) => setPotentialHeads(res.data.map((u) => u.name)))
+      .catch((err) => console.error("Failed to load users for head dropdown:", err));
+  }, []);
 
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -62,38 +86,45 @@ const DepartmentManagement = () => {
     return errs;
   };
 
-  const handleAddSubmit = (e) => {
-    e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length) return setFormErrors(errs);
-    const newDept = {
-      id: Math.max(...departments.map((d) => d.id)) + 1,
-      name: form.name,
-      head: form.head,
-      employeeCount: Number(form.employeeCount),
-      description: form.description,
-      color: colorOptions[departments.length % colorOptions.length],
-    };
-    setDepartments([newDept, ...departments]);
+ const handleAddSubmit = async (e) => {
+  e.preventDefault();
+  const errs = validate();
+  if (Object.keys(errs).length) return setFormErrors(errs);
+  try {
+    await createDepartmentRequest({
+      name: form.name, head: form.head, employeeCount: Number(form.employeeCount), description: form.description,
+    });
     setAddOpen(false);
-  };
+    loadDepartments();
+  } catch (err) {
+    setFormErrors({ name: err.response?.data?.message || "Failed to create department" });
+  }
+};
 
-  const handleEditSubmit = (e) => {
-    e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length) return setFormErrors(errs);
-    setDepartments(
-      departments.map((d) =>
-        d.id === activeDept.id ? { ...d, name: form.name, head: form.head, employeeCount: Number(form.employeeCount), description: form.description } : d
-      )
-    );
+const handleEditSubmit = async (e) => {
+  e.preventDefault();
+  const errs = validate();
+  if (Object.keys(errs).length) return setFormErrors(errs);
+  try {
+    await updateDepartmentRequest(activeDept.id, {
+      name: form.name, head: form.head, employeeCount: Number(form.employeeCount), description: form.description,
+    });
     setEditOpen(false);
-  };
+    loadDepartments();
+  } catch (err) {
+    setFormErrors({ name: err.response?.data?.message || "Failed to update department" });
+  }
+};
 
-  const handleDeleteConfirm = () => {
-    setDepartments(departments.filter((d) => d.id !== activeDept.id));
+const handleDeleteConfirm = async () => {
+  try {
+    await deleteDepartmentRequest(activeDept.id);
     setDeleteOpen(false);
-  };
+    loadDepartments();
+  } catch (err) {
+    console.error("Failed to delete department:", err);
+  }
+};
 
   const inputClass = (field) =>
     `w-full px-4 py-2.5 rounded-xl border ${formErrors[field] ? "border-red-400" : "border-slate-200"} text-sm focus:outline-none focus:ring-2 focus:ring-saffron-400 focus:border-transparent transition`;
@@ -148,11 +179,15 @@ const DepartmentManagement = () => {
 
       <SearchBox value={search} onChange={setSearch} placeholder="Search departments or heads..." className="mb-6 max-w-sm" />
 
-      {filteredDepts.length === 0 ? (
-        <Card><EmptyState icon={FaBuilding} message="No departments found" subMessage="Try a different search term." /></Card>
-      ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredDepts.map((dept) => (
+      {loading ? (
+  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-48 rounded-2xl" />)}
+  </div>
+) : departments.length === 0 ? (
+  <Card><EmptyState icon={FaBuilding} message="No departments found" subMessage="Try a different search term." /></Card>
+) : (
+  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    {departments.map((dept) => (
             <Card key={dept.id} className="hover:shadow-lg transition-shadow">
               <div className="flex items-start justify-between mb-4">
                 <span className={`text-xs font-semibold px-3 py-1 rounded-full ${dept.color}`}>

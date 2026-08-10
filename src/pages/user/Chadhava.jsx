@@ -4,7 +4,7 @@ import {
   SCard, PageHeader, PrimaryBtn, SuccessToast, Modal, FormInput
 } from "../../components/user/ui/UserUI";
 import { chadhavaItems } from "./data/mockData";
-import { FaPlus, FaMinus, FaTrash, FaShoppingCart, FaCheckCircle } from "react-icons/fa";
+import { FaPlus, FaMinus, FaShoppingCart, FaCheckCircle, FaArrowRight } from "react-icons/fa";
 
 const ChadhavaPage = () => {
   const [cart, setCart] = useState({});
@@ -37,55 +37,79 @@ const ChadhavaPage = () => {
 
   const handleSubmit = () => {
     const e = {};
-    if (!form.date) e.date = "Select date";
-    if (!form.name.trim()) e.name = "Enter name";
+    if (!form.date) e.date = "Select offering date";
+    if (!form.name.trim()) e.name = "Enter devotee name";
     if (Object.keys(e).length) { setErrors(e); return; }
     setErrors({});
     setModalOpen(false);
     setCart({});
     setToast(true);
-    setTimeout(() => setToast(false), 4000);
+    setTimeout(() => setToast(false), 4500);
   };
 
   return (
     <UserLayout pageTitle="Chadhava Offerings">
       <PageHeader
-        title="Chadhava Offerings"
-        subtitle="Select sacred offerings for the deity at Vrindavan Chandrodaya Mandir"
-        badge="Sacred Offerings"
+        title="Sacred Chadhava Seva"
+        subtitle="Offer holy Panchamrit, Tulsi Mala, Shringar diyas, and divine Bhog prasad directly to Sri Sri Radha Vrindavanchandra"
+        badge="Devotee Offerings"
         action={
           cartCount > 0 && (
             <button
               onClick={() => setModalOpen(true)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm shadow-md hover:from-amber-600 hover:to-orange-600 transition-all"
+              className="flex items-center gap-2.5 px-6 py-3 rounded-2xl bg-gradient-to-r from-orange-500 to-red-600 text-white font-bold text-sm shadow-lg hover:scale-105 transition-all"
+              style={{ boxShadow: "0 6px 20px rgba(249,115,22,0.4)" }}
             >
-              <FaShoppingCart />
-              Proceed ({cartCount} items · ₹{cartTotal.toLocaleString("en-IN")})
+              <FaShoppingCart className="text-base" />
+              <span>Proceed to Offer ({cartCount} item{cartCount > 1 ? "s" : ""} · ₹{cartTotal.toLocaleString("en-IN")})</span>
             </button>
           )
         }
       />
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-16">
         {chadhavaItems.map((item) => (
-          <SCard key={item.id} className="p-5">
-            <div className="text-4xl mb-3">{item.icon}</div>
-            <h3 className="font-display font-bold text-amber-900 mb-1">{item.name}</h3>
-            <p className="text-xs text-amber-600/70 mb-4">{item.description}</p>
-            <div className="flex items-center justify-between mt-auto">
-              <span className="font-bold text-amber-900">₹{item.price}</span>
+          <div
+            key={item.id}
+            className="group relative overflow-hidden rounded-3xl p-6 border border-slate-100/90 bg-white hover:border-orange-300 hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+          >
+            <div className="absolute top-0 right-0 w-28 h-28 bg-orange-50 rounded-bl-full transition-transform group-hover:scale-110 -z-0 opacity-60 pointer-events-none" />
+
+            <div className="relative z-10">
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-14 h-14 rounded-2xl bg-orange-100/80 text-orange-600 flex items-center justify-center text-3xl shadow-sm group-hover:scale-110 transition-transform">
+                  {item.icon}
+                </div>
+                <span className="text-xs font-extrabold bg-orange-50 text-orange-600 border border-orange-200 px-3 py-1 rounded-full shadow-2xs">
+                  ₹{item.price.toLocaleString("en-IN")}
+                </span>
+              </div>
+
+              <h3 className="font-display font-black text-slate-800 text-lg group-hover:text-orange-600 transition-colors mb-2">
+                {item.name}
+              </h3>
+              <p className="text-xs text-slate-500 mb-6 leading-relaxed font-medium">
+                {item.description}
+              </p>
+            </div>
+
+            <div className="relative z-10 pt-4 border-t border-slate-100 flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-600">
+                {cart[item.id] ? "Selected Quantity:" : "Sacred Offering:"}
+              </span>
+
               {cart[item.id] ? (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2.5">
                   <button
                     onClick={() => updateQty(item.id, -1)}
-                    className="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center hover:bg-amber-200 transition-colors"
+                    className="w-9 h-9 rounded-xl bg-orange-100 text-orange-700 flex items-center justify-center hover:bg-orange-200 transition-colors shadow-2xs font-bold"
                   >
                     <FaMinus className="text-xs" />
                   </button>
-                  <span className="w-6 text-center font-bold text-amber-900 text-sm">{cart[item.id]}</span>
+                  <span className="w-7 text-center font-display font-black text-slate-800 text-base">{cart[item.id]}</span>
                   <button
                     onClick={() => updateQty(item.id, 1)}
-                    className="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center hover:bg-amber-600 transition-colors"
+                    className="w-9 h-9 rounded-xl bg-gradient-to-r from-orange-500 to-red-600 text-white flex items-center justify-center hover:scale-105 transition-all shadow-md font-bold"
                   >
                     <FaPlus className="text-xs" />
                   </button>
@@ -93,56 +117,66 @@ const ChadhavaPage = () => {
               ) : (
                 <button
                   onClick={() => updateQty(item.id, 1)}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-100 text-amber-700 text-sm font-semibold hover:bg-amber-200 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-50 hover:bg-orange-500 hover:text-white text-orange-600 text-xs font-bold transition-all shadow-2xs group/btn"
                 >
-                  <FaPlus className="text-xs" /> Add
+                  <FaPlus className="text-[10px]" />
+                  <span>Add Offering</span>
                 </button>
               )}
             </div>
-          </SCard>
+          </div>
         ))}
       </div>
 
-      {/* Cart Summary (bottom bar when items in cart) */}
+      {/* Floating Cart Bar */}
       {cartCount > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 lg:left-72 z-20 bg-white border-t border-amber-100 px-6 py-3 flex items-center justify-between shadow-xl shadow-amber-900/5 transition-all duration-300">
-          <div>
-            <p className="text-sm font-semibold text-amber-900">{cartCount} offering{cartCount > 1 ? "s" : ""} selected</p>
-            <p className="text-xs text-amber-600/70">Total: ₹{cartTotal.toLocaleString("en-IN")}</p>
+        <div className="fixed bottom-0 left-0 right-0 lg:left-72 z-40 bg-white/95 backdrop-blur-md border-t border-orange-200/80 px-6 sm:px-8 py-4 flex items-center justify-between shadow-2xl transition-all duration-300">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-orange-500 text-white flex items-center justify-center text-xl shadow-md">
+              🪷
+            </div>
+            <div>
+              <p className="text-sm font-bold text-slate-800">{cartCount} sacred offering{cartCount > 1 ? "s" : ""} prepared</p>
+              <p className="text-xs font-bold text-orange-600">Total Seva Contribution: ₹{cartTotal.toLocaleString("en-IN")}</p>
+            </div>
           </div>
-          <PrimaryBtn onClick={() => setModalOpen(true)}>
-            <FaShoppingCart /> Proceed to Booking
+          <PrimaryBtn onClick={() => setModalOpen(true)} className="px-6 py-3 text-sm">
+            <span>Proceed to Offer</span>
+            <FaArrowRight className="text-xs" />
           </PrimaryBtn>
         </div>
       )}
 
       {/* Checkout Modal */}
-      <Modal isOpen={modalOpen} onClose={() => { setModalOpen(false); setErrors({}); }} title="Chadhava Booking">
+      <Modal isOpen={modalOpen} onClose={() => { setModalOpen(false); setErrors({}); }} title="Confirm Chadhava Seva">
         <div className="space-y-4">
-          <div className="rounded-xl border border-amber-100 overflow-hidden">
+          <div className="rounded-2xl border border-orange-200/80 overflow-hidden bg-slate-50/60">
             {cartItems.map((item) => (
-              <div key={item.id} className="flex items-center justify-between p-3 border-b border-amber-50 last:border-0">
-                <span className="text-sm text-amber-900">{item.icon} {item.name} × {cart[item.id]}</span>
-                <span className="text-sm font-semibold text-amber-800">₹{(item.price * cart[item.id]).toLocaleString("en-IN")}</span>
+              <div key={item.id} className="flex items-center justify-between p-3.5 border-b border-orange-100 last:border-0 bg-white/80">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-2">
+                  <span className="text-base">{item.icon}</span>
+                  <span>{item.name} × {cart[item.id]}</span>
+                </span>
+                <span className="text-xs font-black text-orange-600">₹{(item.price * cart[item.id]).toLocaleString("en-IN")}</span>
               </div>
             ))}
-            <div className="flex items-center justify-between p-3 bg-amber-50">
-              <span className="font-semibold text-amber-900">Total</span>
-              <span className="font-bold text-amber-900">₹{cartTotal.toLocaleString("en-IN")}</span>
+            <div className="flex items-center justify-between p-4 bg-orange-50/90 border-t border-orange-200">
+              <span className="font-bold text-slate-800 text-sm">Total Contribution</span>
+              <span className="font-display font-black text-lg text-orange-600">₹{cartTotal.toLocaleString("en-IN")}</span>
             </div>
           </div>
 
           <FormInput label="Offering Date" id="cha-date" type="date" required {...f("date")} />
-          <FormInput label="Devotee Name" id="cha-name" placeholder="Name for Sankalp" required {...f("name")} />
+          <FormInput label="Devotee Name (For Sankalp)" id="cha-name" placeholder="Full name for deity resolution" required {...f("name")} />
           <FormInput label="Phone Number" id="cha-phone" type="tel" placeholder="+91 XXXXX XXXXX" {...f("phone")} />
 
-          <PrimaryBtn onClick={handleSubmit} className="w-full">
-            <FaCheckCircle /> Confirm Offering
+          <PrimaryBtn onClick={handleSubmit} className="w-full py-3.5 text-base shadow-lg mt-2">
+            <FaCheckCircle /> Complete Chadhava Offering
           </PrimaryBtn>
         </div>
       </Modal>
 
-      {toast && <SuccessToast message="Chadhava offering booked! Priests will perform on your behalf." onClose={() => setToast(false)} />}
+      {toast && <SuccessToast message="Chadhava offering booked successfully! Temple priests will perform the offering on your selected date." onClose={() => setToast(false)} />}
     </UserLayout>
   );
 };

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { fetchBackups, createBackupRequest, downloadBackupRequest, restoreBackupRequest } from "../../api/backupsApi";
 import { FaDatabase, FaDownload, FaUndo, FaPlus, FaCheckCircle, FaHdd, FaClock } from "react-icons/fa";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import Card from "../../components/common/Card";
@@ -16,27 +17,37 @@ const initialBackups = [
 ];
 
 const BackupRestore = () => {
-  const [backups, setBackups] = useState(initialBackups);
+  const [backups, setBackups] = useState([]);
   const [creating, setCreating] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const loadBackups = () => {
+    fetchBackups()
+      .then((res) => setBackups(res.data))
+      .catch((err) => console.error("Failed to load backups:", err));
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    loadBackups();
+    setLoading(false);
+  }, []);
   const [restoreOpen, setRestoreOpen] = useState(false);
   const [activeBackup, setActiveBackup] = useState(null);
   const [restoring, setRestoring] = useState(false);
   const [restoreDone, setRestoreDone] = useState(false);
 
-  const handleCreateBackup = () => {
+  const handleCreateBackup = async () => {
     setCreating(true);
-    setTimeout(() => {
-      const newBackup = {
-        id: Date.now(),
-        name: "Manual Backup",
-        size: `${(Math.random() * 20 + 470).toFixed(0)} MB`,
-        date: new Date().toLocaleString("en-IN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }),
-        type: "Manual",
-        status: "Completed",
-      };
-      setBackups([newBackup, ...backups]);
+    try {
+      await createBackupRequest();
+      loadBackups();
+    } catch (err) {
+      console.error("Backup failed:", err);
+      alert(err.response?.data?.message || "Backup failed");
+    } finally {
       setCreating(false);
-    }, 1800);
+    }
   };
 
   const openRestore = (backup) => {
@@ -45,12 +56,17 @@ const BackupRestore = () => {
     setRestoreOpen(true);
   };
 
-  const handleRestoreConfirm = () => {
+  const handleRestoreConfirm = async () => {
     setRestoring(true);
-    setTimeout(() => {
-      setRestoring(false);
+    try {
+      await restoreBackupRequest(activeBackup.id);
       setRestoreDone(true);
-    }, 2000);
+    } catch (err) {
+      console.error("Restore failed:", err);
+      alert(err.response?.data?.message || "Restore failed");
+    } finally {
+      setRestoring(false);
+    }
   };
 
   return (
@@ -104,7 +120,11 @@ const BackupRestore = () => {
                 <Badge status={b.status === "Completed" ? "Active" : "Rejected"}>{b.status}</Badge>
                 {b.status === "Completed" && (
                   <>
-                    <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 text-blue-500 transition-colors" title="Download Backup">
+                    <button
+                      onClick={() => downloadBackupRequest(b.id, b.name)}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 text-blue-500 transition-colors"
+                      title="Download Backup"
+                    >
                       <FaDownload className="text-sm" />
                     </button>
                     <button onClick={() => openRestore(b)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-amber-50 text-amber-500 transition-colors" title="Restore">

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   LineChart, Line, BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
@@ -9,8 +9,9 @@ import Card from "../../components/common/Card";
 import Breadcrumbs from "../../components/common/Breadcrumbs";
 import { superAdminMenuItems } from "./SuperAdminDashboard";
 import {
-  employeeGrowthData, departmentActivityData, portalVisitsData, monthlyLoginsData, userRoleDistribution,
-} from "../../data/mockAnalytics";
+  fetchAnalyticsSummary, fetchEmployeeGrowth, fetchDepartmentActivity,
+  fetchPortalVisits, fetchMonthlyLogins, fetchRoleDistribution,
+} from "../../api/analyticsApi";
 
 const reports = [
   { id: 1, name: "Monthly Employee Report — June 2026", type: "PDF", size: "1.2 MB", date: "2026-07-01" },
@@ -24,6 +25,34 @@ const range = ["7 Days", "30 Days", "3 Months", "1 Year"];
 
 const Analytics = () => {
   const [activeRange, setActiveRange] = useState("30 Days");
+  const [summary, setSummary] = useState({ totalEmployees: 0, avgDepartmentActivity: 0, weeklyPortalVisits: 0, monthlyLogins: 0 });
+  const [employeeGrowthData, setEmployeeGrowthData] = useState([]);
+  const [departmentActivityData, setDepartmentActivityData] = useState([]);
+  const [portalVisitsData, setPortalVisitsData] = useState([]);
+  const [monthlyLoginsData, setMonthlyLoginsData] = useState([]);
+  const [userRoleDistribution, setUserRoleDistribution] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      fetchAnalyticsSummary(),
+      fetchEmployeeGrowth(),
+      fetchDepartmentActivity(),
+      fetchPortalVisits(),
+      fetchMonthlyLogins(),
+      fetchRoleDistribution(),
+    ])
+      .then(([summaryRes, growthRes, activityRes, visitsRes, loginsRes, roleRes]) => {
+        setSummary(summaryRes.data);
+        setEmployeeGrowthData(growthRes.data);
+        setDepartmentActivityData(activityRes.data);
+        setPortalVisitsData(visitsRes.data);
+        setMonthlyLoginsData(loginsRes.data);
+        setUserRoleDistribution(roleRes.data);
+      })
+      .catch((err) => console.error("Failed to load analytics:", err))
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <DashboardLayout menuItems={superAdminMenuItems} pageTitle="Analytics" profilePath="/superadmin/profile" settingsPath="/superadmin/settings">
@@ -38,9 +67,8 @@ const Analytics = () => {
             <button
               key={r}
               onClick={() => setActiveRange(r)}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors ${
-                activeRange === r ? "bg-gradient-to-r from-saffron-600 to-maroon-600 text-white shadow-soft" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-              }`}
+              className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors ${activeRange === r ? "bg-gradient-to-r from-saffron-600 to-maroon-600 text-white shadow-soft" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                }`}
             >
               {r}
             </button>
@@ -51,17 +79,17 @@ const Analytics = () => {
       {/* Summary stats */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
         {[
-          { icon: FaUsers, label: "Total Employees", value: "702", trend: "+4.2%", color: "text-saffron-600 bg-saffron-50" },
-          { icon: FaChartLine, label: "Avg. Department Activity", value: "69%", trend: "+3.1%", color: "text-blue-600 bg-blue-50" },
-          { icon: FaGlobe, label: "Portal Visits (Weekly)", value: "2,570", trend: "+11%", color: "text-emerald-600 bg-emerald-50" },
-          { icon: FaSignInAlt, label: "Monthly Logins", value: "3,100", trend: "+8.7%", color: "text-purple-600 bg-purple-50" },
-        ].map(({ icon: Icon, label, value, trend, color }) => (
+          { icon: FaUsers, label: "Total Employees", value: summary.totalEmployees, color: "text-saffron-600 bg-saffron-50" },
+          { icon: FaChartLine, label: "Avg. Department Activity", value: `${summary.avgDepartmentActivity}%`, color: "text-blue-600 bg-blue-50" },
+          { icon: FaGlobe, label: "Portal Visits (Weekly)", value: summary.weeklyPortalVisits, color: "text-emerald-600 bg-emerald-50" },
+          { icon: FaSignInAlt, label: "Monthly Logins", value: summary.monthlyLogins, color: "text-purple-600 bg-purple-50" },
+        ].map(({ icon: Icon, label, value, color }) => (
           <Card key={label}>
             <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-4 ${color}`}><Icon /></div>
             <p className="text-2xl font-display font-bold text-slate-800">{value}</p>
             <div className="flex items-center justify-between mt-1">
               <p className="text-slate-500 text-sm">{label}</p>
-              <span className="text-xs font-semibold text-emerald-600">{trend}</span>
+            
             </div>
           </Card>
         ))}

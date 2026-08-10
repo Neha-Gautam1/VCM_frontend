@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaChevronDown, FaChevronRight, FaSitemap, FaExpand, FaCompress } from "react-icons/fa";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import Card from "../../components/common/Card";
 import Breadcrumbs from "../../components/common/Breadcrumbs";
 import { superAdminMenuItems } from "./SuperAdminDashboard";
-import { orgChartData } from "../../data/mockOrgChart";
+import { fetchOrgChart } from "../../api/orgChartApi";
 
 const roleColors = {
   President: "from-maroon-700 to-maroon-800",
@@ -64,6 +64,15 @@ const TreeNode = ({ node, depth = 0, allExpanded }) => {
 
 const OrganizationChart = () => {
   const [allExpanded, setAllExpanded] = useState(null);
+  const [chartData, setChartData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchOrgChart()
+      .then((res) => setChartData(res.data))
+      .catch((err) => console.error("Failed to load org chart:", err))
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <DashboardLayout menuItems={superAdminMenuItems} pageTitle="Organization Chart" profilePath="/superadmin/profile" settingsPath="/superadmin/settings">
@@ -99,13 +108,21 @@ const OrganizationChart = () => {
         ))}
       </div>
 
-      <Card>
-        <div className="overflow-x-auto pb-4">
-          <div className="min-w-max flex justify-center py-6 px-6">
-            <TreeNode node={orgChartData} allExpanded={allExpanded} />
-          </div>
-        </div>
-      </Card>
+     <Card>
+  <div className="overflow-x-auto pb-4">
+    <div className="min-w-max flex justify-center py-6 px-6">
+      {loading ? (
+        <p className="text-slate-400 text-sm py-10">Loading organization chart...</p>
+      ) : chartData ? (
+        <TreeNode node={chartData} allExpanded={allExpanded} />
+      ) : (
+        <p className="text-slate-400 text-sm py-10">
+          No organization chart data yet — add a root node to get started.
+        </p>
+      )}
+    </div>
+  </div>
+</Card>
 
       <div className="mt-6 flex items-start gap-3 bg-blue-50 border border-blue-100 rounded-2xl p-5">
         <FaSitemap className="text-blue-500 mt-0.5 flex-shrink-0" />
